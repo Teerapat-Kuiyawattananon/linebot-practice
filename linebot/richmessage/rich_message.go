@@ -1,0 +1,1189 @@
+package richmessage
+
+import (
+	"context"
+	"entdemo/ent"
+	"fmt"
+	"log"
+
+	"github.com/line/line-bot-sdk-go/v7/linebot"
+	// "github.com/line/line-bot-sdk-go/v7/linebot/httphandler"
+)
+
+func GetRichMessage() *linebot.FlexMessage {
+	var contents []linebot.FlexComponent
+	text := linebot.TextComponent{
+		Type:   linebot.FlexComponentTypeText,
+		Text:   "Brown Cafe",
+		Weight: "bold",
+		Size:   linebot.FlexTextSizeTypeXl,
+	}
+	contents = append(contents, &text)
+	// Make Hero
+	hero := linebot.ImageComponent{
+		Type:        linebot.FlexComponentTypeImage,
+		URL:         "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+		Size:        "full",
+		AspectRatio: linebot.FlexImageAspectRatioType20to13,
+		AspectMode:  linebot.FlexImageAspectModeTypeCover,
+		Action:      linebot.NewMessageAction("left", "left clicked"),
+	}
+	// Make Body
+	body := linebot.BoxComponent{
+		Type:     linebot.FlexComponentTypeBox,
+		Layout:   linebot.FlexBoxLayoutTypeVertical,
+		Contents: contents,
+	}
+	// Build Container
+	bubble := linebot.BubbleContainer{
+		Type: linebot.FlexContainerTypeBubble,
+		Hero: &hero,
+		Body: &body,
+	}
+	// New Flex Message
+	flexMessage := linebot.NewFlexMessage("FlexWithCode", &bubble)
+
+	return flexMessage
+}
+
+func GetRichProfile(profile *linebot.UserProfileResponse) *linebot.FlexMessage {
+	var contents []linebot.FlexComponent
+	text := linebot.TextComponent{
+		Type:   linebot.FlexComponentTypeText,
+		Text:   profile.DisplayName,
+		Weight: "bold",
+		Size:   linebot.FlexTextSizeTypeXl,
+	}
+	contents = append(contents, &text)
+	// Make Hero
+	hero := linebot.ImageComponent{
+		Type:        linebot.FlexComponentTypeImage,
+		URL:         profile.PictureURL,
+		Size:        "full",
+		AspectRatio: linebot.FlexImageAspectRatioType20to13,
+		AspectMode:  linebot.FlexImageAspectModeTypeCover,
+		Action:      linebot.NewMessageAction("left", "left clicked"),
+	}
+	// Make Body
+	body := linebot.BoxComponent{
+		Type:     linebot.FlexComponentTypeBox,
+		Layout:   linebot.FlexBoxLayoutTypeVertical,
+		Contents: contents,
+	}
+	// Build Container
+	bubble := linebot.BubbleContainer{
+		Type: linebot.FlexContainerTypeBubble,
+		Hero: &hero,
+		Body: &body,
+	}
+	// New Flex Message
+	flexMessage := linebot.NewFlexMessage("FlexWithCode", &bubble)
+
+	return flexMessage
+}
+
+func GetRichWithJSON(profile *linebot.UserProfileResponse) *linebot.FlexMessage {
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "%s",
+			  "align": "center",
+			  "contents": []
+			}
+		  ]
+		},
+		"hero": {
+		  "type": "image",
+		  "url": "%s",
+		  "size": "full",
+		  "aspectMode": "cover"
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "Statue : %s",
+			  "align": "center",
+			  "contents": []
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูรายละเอียด",
+				"text": "love chu~~~~"
+			  },
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`
+	
+	jsonStr = fmt.Sprintf(jsonStr, profile.DisplayName, profile.PictureURL, profile.StatusMessage)
+	// fmt.Println(jsonStr)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Println(err)
+	}
+	// New Flex Message
+	flexMessage := linebot.NewFlexMessage("FlexWithJSON", flexContainer)
+
+	return flexMessage
+}
+
+func GetInfoTeaTimeFlexMessage() *linebot.FlexMessage {
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(`{
+		"type": "bubble",
+		"hero": {
+		  "type": "image",
+		  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+		  "size": "full",
+		  "aspectRatio": "20:13",
+		  "aspectMode": "cover",
+		  "action": {
+			"type": "uri",
+			"label": "Action",
+			"uri": "https://linecorp.com/"
+		  }
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "spacing": "md",
+		  "contents": [
+			{
+			  "type": "box",
+			  "layout": "vertical",
+			  "flex": 2,
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "TeaTime For You",
+				  "weight": "bold",
+				  "size": "lg",
+				  "flex": 1,
+				  "align": "start",
+				  "gravity": "top",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "~ MikeTea",
+				  "size": "md",
+				  "flex": 2,
+				  "align": "start",
+				  "gravity": "top",
+				  "margin": "md",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "~ Coffee",
+				  "size": "md",
+				  "flex": 2,
+				  "gravity": "center",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "~ Bakery",
+				  "size": "md",
+				  "flex": 1,
+				  "gravity": "bottom",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูรายละเอียด",
+				"text": "MENU"
+			  },
+			  "color": "#43BC38FF"
+			}
+		  ]
+		}
+	  }`))
+	if err != nil {
+		log.Println(err)
+	}
+	// New Flex Message
+	flexMessage := linebot.NewFlexMessage("FlexWithJSON", flexContainer)
+	return flexMessage
+}
+
+// func GetMenuTeaTimeCarousel() *linebot.TemplateMessage {
+// 	// New TemplateAction
+// 	var actions []linebot.TemplateAction
+// 	// Add Actions
+// 	actions = append(actions, linebot.NewMessageAction("left", "left clicked"))
+// 	actions = append(actions, linebot.NewMessageAction("right", "right clicked"))
+// 	// Image URL For CarouselColumn
+// 	imgURL := "https://cdn-image.travelandleisure.com/sites/default/files/styles/1600x1000/public/1539963100/sloth-SLOTH1018.jpg?itok=n6IuFyx_"
+// 	// New CarouselColumns
+// 	var columns []*linebot.CarouselColumn
+// 	// Add CarouselColumn
+// 	columns = append(columns, linebot.NewCarouselColumn(imgURL, "Title", "description", actions...))
+// 	// New CarouselTemplate
+// 	carousel := linebot.NewCarouselTemplate(columns...)
+// 	// New TemplateMessage
+// 	template := linebot.NewTemplateMessage("Carousel", carousel)
+// 	// Reply Message
+// 	return template
+// }
+
+func GetMenuTeaTimeCarousel() *linebot.FlexMessage {
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(`
+	{
+		"type": "carousel",
+		"contents": [
+		  {
+			"type": "bubble",
+			"hero": {
+			  "type": "image",
+			  "url": "https://img.wongnai.com/p/1920x0/2019/02/15/3fc49b443e224063aabf0e6028fcabd1.jpg",
+			  "size": "full",
+			  "aspectRatio": "20:13",
+			  "aspectMode": "cover"
+			},
+			"body": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "spacing": "sm",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "Koi the' Goledn Bubble Mike Tea",
+				  "weight": "bold",
+				  "size": "xl",
+				  "wrap": true,
+				  "contents": []
+				},
+				{
+				  "type": "box",
+				  "layout": "baseline",
+				  "margin": "lg",
+				  "contents": [
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "text",
+					  "text": "5.0",
+					  "color": "#999999",
+					  "margin": "sm",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "vertical",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "Price : 80 Baht",
+					  "weight": "regular",
+					  "size": "lg",
+					  "flex": 1,
+					  "align": "start",
+					  "gravity": "top",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "Stock : 10",
+					  "size": "lg",
+					  "contents": []
+					}
+				  ]
+				}
+			  ]
+			},
+			"footer": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "spacing": "sm",
+			  "contents": [
+				{
+				  "type": "button",
+				  "action": {
+					"type": "message",
+					"label": "Add to Cart",
+					"text": "add_miketea_to_cart"
+				  },
+				  "color": "#43BC38FF",
+				  "style": "primary"
+				},
+				{
+				  "type": "button",
+				  "action": {
+					"type": "uri",
+					"label": "Add to wishlist",
+					"uri": "https://linecorp.com"
+				  }
+				}
+			  ]
+			}
+		  },
+		  {
+			"type": "bubble",
+			"hero": {
+			  "type": "image",
+			  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+			  "size": "full",
+			  "aspectRatio": "20:13",
+			  "aspectMode": "cover"
+			},
+			"body": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "spacing": "sm",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "Coffer Lover",
+				  "weight": "bold",
+				  "size": "xl",
+				  "wrap": true,
+				  "contents": []
+				},
+				{
+				  "type": "separator",
+				  "margin": "xl",
+				  "color": "#FFFFFFFF"
+				},
+				{
+				  "type": "box",
+				  "layout": "baseline",
+				  "margin": "xxl",
+				  "contents": [
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
+					},
+					{
+					  "type": "icon",
+					  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png"
+					},
+					{
+					  "type": "text",
+					  "text": "4.0",
+					  "color": "#999999",
+					  "margin": "sm",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "vertical",
+				  "flex": 1,
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "Price : 100 Baht",
+					  "size": "lg",
+					  "flex": 0,
+					  "align": "start",
+					  "gravity": "top",
+					  "wrap": true,
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "Stock : 11",
+					  "size": "lg",
+					  "contents": []
+					}
+				  ]
+				}
+			  ]
+			},
+			"footer": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "spacing": "sm",
+			  "contents": [
+				{
+				  "type": "button",
+				  "action": {
+					"type": "message",
+					"label": "Add to Cart",
+					"text": "add_coffee_to_cart"
+				  },
+				  "flex": 2,
+				  "color": "#43BC38FF",
+				  "style": "primary"
+				},
+				{
+				  "type": "button",
+				  "action": {
+					"type": "uri",
+					"label": "Add to wish list",
+					"uri": "https://linecorp.com"
+				  }
+				}
+			  ]
+			}
+		  },
+		  {
+			"type": "bubble",
+			"body": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "spacing": "sm",
+			  "contents": [
+				{
+				  "type": "button",
+				  "action": {
+					"type": "uri",
+					"label": "See more",
+					"uri": "https://linecorp.com"
+				  },
+				  "flex": 1,
+				  "gravity": "center"
+				}
+			  ]
+			}
+		  }
+		]
+	  }`))
+	if err != nil {
+		log.Println(err)
+	}
+	// New Flex Message
+	flexMessage := linebot.NewFlexMessage("FlexWithJSON", flexContainer)
+	return flexMessage
+}
+
+func GetSinTrustFlexMessage(lineuser *ent.LineUser) *linebot.FlexMessage {
+	creditlater := lineuser.QueryCreditlaters().OnlyX(context.Background())
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(fmt.Sprintf(
+		`{
+			"type": "bubble",
+			"direction": "ltr",
+			"header": {
+			  "type": "box",
+			  "layout": "vertical",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "ใช้วงเงิน",
+				  "weight": "bold",
+				  "size": "xl",
+				  "align": "start",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "Buy Now Pay Later",
+				  "weight": "bold",
+				  "size": "xl",
+				  "align": "start",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "เลขที่สัญญา: %s",
+				  "margin": "sm",
+				  "contents": []
+				},
+				{
+				  "type": "separator",
+				  "margin": "lg"
+				},
+				{
+				  "type": "box",
+				  "layout": "baseline",
+				  "spacing": "xs",
+				  "margin": "md",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "Transaction Ref.",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "%s",
+					  "size": "sm",
+					  "align": "start",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "horizontal",
+				  "spacing": "xs",
+				  "margin": "xs",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "วันที่และเวลา",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "%s",
+					  "size": "sm",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "horizontal",
+				  "spacing": "xs",
+				  "margin": "xs",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "สาขา",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "%s",
+					  "size": "sm",
+					  "align": "start",
+					  "wrap": true,
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "horizontal",
+				  "spacing": "xs",
+				  "margin": "xs",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "จำนวนเงิน",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "฿ %d",
+					  "size": "sm",
+					  "color": "#6BB977FF",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "horizontal",
+				  "spacing": "xs",
+				  "margin": "xs",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "ผ่อนชำระ",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "%d งวด",
+					  "size": "sm",
+					  "contents": []
+					}
+				  ]
+				},
+				{
+				  "type": "box",
+				  "layout": "horizontal",
+				  "spacing": "xs",
+				  "margin": "xs",
+				  "contents": [
+					{
+					  "type": "text",
+					  "text": "หมายเหตุ",
+					  "size": "sm",
+					  "color": "#AAA9A9FF",
+					  "contents": []
+					},
+					{
+					  "type": "text",
+					  "text": "%s",
+					  "size": "sm",
+					  "contents": []
+					}
+				  ]
+				}
+			  ]
+			}
+		  }`, "XXXX-XXX-X0040", creditlater.TransactionRef, creditlater.Date + " น.", creditlater.Branch , creditlater.Amount, creditlater.Installment, creditlater.Detail)))
+	if err != nil {
+		log.Println(err)
+	}
+
+	flexMessage := linebot.NewFlexMessage("SinTruch", flexContainer)
+
+	return flexMessage
+}
+
+func GetSinTrustInfoFlexMessage() *linebot.FlexMessage {
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(`{
+		"type": "bubble",
+		"hero": {
+		  "type": "image",
+		  "url": "https://www.arabianbusiness.com/cloud/2021/11/13/NWPALgnN-digital-payment-1.jpg",
+		  "size": "full",
+		  "aspectRatio": "20:13",
+		  "aspectMode": "cover"
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "เครดิต Buy Now Pay Later",
+			  "weight": "bold",
+			  "size": "xl",
+			  "contents": []
+			},
+			{
+			  "type": "box",
+			  "layout": "vertical",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "* วงเงินสูงสุด 100,000 บาท",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "* ระยะเวลาการให้สินเชื่อ 30 วัน",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "* ดอกเบี้ย 0.68% ต่อเดือนเมื่อคิดแบบเงินต้นคงที่ หรือเท่ากับ 1.25% ต่อเดือนเมื่อคิดแบบลดต้นลดดอก ตามระยะเวลาผ่อนจริง",
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "flex": 0,
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "postback",
+				"label": "ขอรายละเอียด",
+				"data": "getDetail"
+			  },
+			  "color": "#6BB583FF",
+			  "height": "sm",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`))
+	if err != nil {
+		log.Println(err)
+	}
+
+	flexMessage := linebot.NewFlexMessage("SinTruchInfo", flexContainer)
+	return flexMessage
+}
+
+
+func GetLineLogs(lineuser *ent.LineUser) *linebot.FlexMessage {
+	logs := lineuser.QueryLinelogs().AllX(context.Background())
+	jsonStr := 
+	`{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "History",
+			  "weight": "bold",
+			  "size": "xl",
+			  "align": "center",
+			  "contents": []
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "lg",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "DisplayName :",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s",
+				  "contents": []
+				}
+			  ]
+			},
+			{
+			  "type": "separator",
+			  "margin": "md",
+			  "color": "#FF0000FF"
+			}%s
+		  ]
+		}
+	}`
+
+	logStrJson := 
+	`,
+	{
+	  "type": "box",
+	  "layout": "baseline",
+	  "margin": "sm",
+	  "contents": [
+		{
+		  "type": "text",
+		  "text": "Action :",
+		  "contents": []
+		},
+		{
+		  "type": "text",
+		  "text": "%s",
+		  "contents": []
+		}
+	  ]
+	},
+	{
+	  "type": "box",
+	  "layout": "baseline",
+	  "contents": [
+		{
+		  "type": "text",
+		  "text": "Created_at :",
+		  "contents": []
+		},
+		{
+		  "type": "text",
+		  "text": "%s",
+		  "contents": []
+		}
+	  ]
+	},
+	{
+	  "type": "separator",
+	  "margin": "md"
+	}`
+	tmpStr := ""
+	for _, log := range logs[:5] {
+		tmpStr += fmt.Sprintf(logStrJson, log.Action, log.CreatedAt.Format("02/01/2006"))
+	}
+	// testLog := fmt.Sprintf(logStrJson, "send power", "2022-22-22")
+	testLogAddJson := fmt.Sprintf(jsonStr, lineuser.DisplyaName, tmpStr)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(testLogAddJson))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("Logs", flexContainer)
+	return flexMessage
+
+}
+
+func GetSinTrustChangeDate(lineuser *ent.LineUser) *linebot.FlexMessage {
+	credit_later := lineuser.QueryCreditlaters().OnlyX(context.Background())
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "แก้ไขวันที่และเวลา",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "start",
+			  "contents": []
+			},
+			{
+			  "type": "separator",
+			  "margin": "sm",
+			  "color": "#00C301FF"
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "lg",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "วันที่และเวลาเดิม : ",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s",
+				  "size": "sm",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+			"type": "box",
+			"layout": "horizontal",
+			"contents": [
+			  {
+				"type": "button",
+				"action": {
+				  "type": "datetimepicker",
+				  "label": "เลือกวันที่และเวลา",
+				  "data": "changeDateSinTrust",
+				  "mode": "datetime",
+				  "initial": "2023-06-29T11:57",
+				  "max": "2024-06-29T11:57",
+				  "min": "2022-06-29T11:57"
+				},
+				"color": "#6BB583FF",
+				"style": "primary"
+			  }
+			]
+		  }
+		}`
+	
+	jsonStr = fmt.Sprintf(jsonStr, credit_later.Date + " น.")
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("ChangeDate", flexContainer)
+
+	return flexMessage
+	
+}
+
+func GetTest() *linebot.FlexMessage {
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(`
+	{
+		"type": "bubble",
+		"direction": "ltr",
+		"footer": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "postback",
+				"label": "Buy",
+				"data": "action=buy&itemid=111",
+				"displayText": "Buy",
+				"inputOption": "openKeyboard",
+				"fillInText": "---\nName: \nPhone: \nBirthday: \n---"
+			  }
+			}
+		  ]
+		}
+	  }
+	  `))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("test", flexContainer)
+	return flexMessage
+	
+}
+
+func GetListGroups(client *ent.Client) *linebot.FlexMessage {
+	groups := client.Group.
+		Query().
+		AllX(context.Background())
+	
+	jsonStr := `
+	{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "List of Groups",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "start",
+			  "contents": []
+			},
+			{
+			  "type": "separator",
+			  "margin": "md",
+			  "color": "#00BF89FF"
+			}%s
+		  ]
+		}
+	  }`
+
+	tmpStr := ""
+	for _, group := range groups {
+		nameStr := ""
+		for _, u := range group.QueryUsers().AllX(context.Background()) {
+			nameStr += u.Name + " "
+		}
+		tmpStr += fmt.Sprintf(`,
+		{
+		  "type": "box",
+		  "layout": "baseline",
+		  "margin": "lg",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "%s :",
+			  "contents": []
+			},
+			{
+			  "type": "text",
+			  "text": "%s",
+			  "wrap": true,
+			  "contents": []
+			}
+		  ]
+		},
+		{
+		  "type": "separator",
+		  "margin": "md",
+		  "color": "#00BF89FF"
+		}`, group.Name, nameStr)
+	}
+	flexStr := fmt.Sprintf(jsonStr, tmpStr)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(flexStr))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("ListGroups", flexContainer)
+
+	return flexMessage
+}
+
+func GetSinTrustChangeBranch(lineuser *ent.LineUser) *linebot.FlexMessage {
+	credit_later := lineuser.QueryCreditlaters().OnlyX(context.Background())
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "แก้ไขสาขา",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "start",
+			  "contents": []
+			},
+			{
+			  "type": "separator",
+			  "margin": "sm",
+			  "color": "#00C301FF"
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "lg",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "สาขาเดิม : ",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s",
+				  "size": "sm",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+			"type": "box",
+			"layout": "horizontal",
+			"contents": [
+			  {
+				"type": "button",
+				"action": {
+				  "type": "postback",
+				  "label": "แก้ไขสาขา",
+				  "data": "changeBranchSinTrust",
+				  "inputOption": "openKeyboard",
+				  "fillInText": "แก้ไขสาขาเป็น: "
+				},
+				"color": "#6BB583FF",
+				"style": "primary"
+			  }
+			]
+		  }
+		}`
+	
+	jsonStr = fmt.Sprintf(jsonStr, credit_later.Branch)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("ChangeBranch", flexContainer)
+
+	return flexMessage
+	
+}
+
+func GetSinTrustChangeAmount(lineuser *ent.LineUser) *linebot.FlexMessage {
+	credit_later := lineuser.QueryCreditlaters().OnlyX(context.Background())
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "แก้ไขจำนวนเงิน",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "start",
+			  "contents": []
+			},
+			{
+			  "type": "separator",
+			  "margin": "sm",
+			  "color": "#00C301FF"
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "lg",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "จำนวนเงินเดิม : ",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "฿ %d",
+				  "size": "sm",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+			"type": "box",
+			"layout": "horizontal",
+			"contents": [
+			  {
+				"type": "button",
+				"action": {
+				  "type": "postback",
+				  "label": "แก้ไขจำนวนเงิน",
+				  "data": "changeAmountSinTrust",
+				  "inputOption": "openKeyboard",
+				  "fillInText": "แก้ไขจำนวนเงินเป็น: "
+				},
+				"color": "#6BB583FF",
+				"style": "primary"
+			  }
+			]
+		  }
+		}`
+	
+	jsonStr = fmt.Sprintf(jsonStr, credit_later.Amount)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Println(err)
+	}
+	flexMessage := linebot.NewFlexMessage("ChangeAmount", flexContainer)
+
+	return flexMessage
+	
+}
