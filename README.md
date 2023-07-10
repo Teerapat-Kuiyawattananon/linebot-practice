@@ -10,12 +10,16 @@ git clone https://github.com/Teerapat-Kuiyawattananon/linebot-practice.git
 ```
 2. add linebot ID: `@551kqxbr`
 
-3. Run Docker-compose:
+3. copy .env.example file to .env file
+```
+cp .env.example .env
+```
+4. Run Docker-compose:
 ```
 docker-compose up -d
 ```
 
-4. Run App:
+5. Run App:
 ```
 go run start.go 
 ```
@@ -25,13 +29,13 @@ air
 ```
 
 
-5. Access to PostgreSQL
+6. Access to PostgreSQL
 ```
 psql -h localhost -p 6789 -U teerapat
 password admin1234
 ```
 
-6. Public URL for webhook
+7. Public URL for webhook
 ```
 ngrok http --region jp 7777
 ```

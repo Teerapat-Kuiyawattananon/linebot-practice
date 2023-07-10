@@ -4,7 +4,7 @@ import (
 	"context"
 	"entdemo/ent"
 	"entdemo/ent/car"
-	_"entdemo/ent/creditlater"
+	_ "entdemo/ent/creditlater"
 	"entdemo/ent/lineuser"
 	"entdemo/ent/user"
 	_ "entdemo/ent/user"
@@ -12,12 +12,14 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"github.com/line/line-bot-sdk-go/v7/linebot/httphandler"
@@ -27,8 +29,10 @@ var client *ent.Client
 var err error
 
 func init() {
-	fmt.Println("route started.....")
-	client, err = ent.Open("postgres", "host=localhost port=6789 user=teerapat dbname=teerapat password=admin1234 sslmode=disable")
+	if err := godotenv.Load(".env") ; err != nil {
+		log.Fatal(err)
+	}
+	client, err = ent.Open("postgres", os.Getenv("PSQL_DB_CONNECT"))
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
@@ -45,8 +49,8 @@ func init() {
 func HandlerReply(c *gin.Context) {
 	ctx := context.Background()
 	handler, err := httphandler.New(
-		"6e45b0810ef87b495b0521a325c82a32",
-		"sKrOayAXwLTFlzAqMGwqw0XXgQDvhcEUBPztcBE4fHNi5ELaB+SJV0jJaU4tgEChhihoNxpUHIA4ztYknKKomjiOoAeKMR+srT9D6zgdlBbDw0BbeYcUU3HulJZS4zVO5/vbxNnxSqN8Grq6V3LQrwdB04t89/1O/w1cDnyilFU=",
+		os.Getenv("LINE_CHANNEL_SECRET"),
+		os.Getenv("LINE_CHANNEL_TOKEN"),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -233,28 +237,53 @@ func HandlerReply(c *gin.Context) {
 					log.Println(affected)
 					
 				} else if message.Text == "Car" {
-					// test := client.User.Query().Where(user.Age(99)).OnlyX(ctx)
-					// car := client.Car.Create().
-					// 	SetModel("Ford").
-					// 	SetRegisteredAt(time.Now()).
-					// 	SaveX(ctx)
-					// test = test.Update().AddCars(car).SaveX(ctx)
-					affected, err := client.Car.Delete().Where(car.Not(car.HasOwner())).Exec(ctx)
+					tesla, err := client.Car.Create().
+						SetModel("Tesla").
+						SetRegisteredAt(time.Now()).
+						Save(ctx)
 					if err != nil {
 						log.Fatal(err)
 					}
-					log.Println(affected)
+					log.Println("car was created: ", tesla)
+
+					// Create Car
+					ford, err := client.Car.Create().
+						SetModel("Ford").
+						SetRegisteredAt(time.Now()).
+						Save(ctx)
+					if err != nil {
+						log.Fatal(err)
+					}
+					log.Println("car was created: ", ford)
+
+					// Create User then add two cars to User
+					u, err := client.User.Create().
+						SetAge(25).
+						SetName("arm").
+						AddCars(tesla, ford).
+						Save(ctx)
+					if err != nil {
+						log.Fatal(err)
+					}
+					log.Println("user was created: ", u)
+					
+				} else if message.Text == "Delete car" {
+					user := client.User.Query().Where(user.Name("arm")).OnlyX(ctx)
+					err := client.User.DeleteOne(user).Exec(ctx)
+					if err != nil {
+						log.Fatal(err)
+					}
 				} else if message.Text == "Delete line" {
 					// delete LineUser
-					credit_later := lineUser.QueryCreditlaters().OnlyX(ctx)
+					// credit_later := lineUser.QueryCreditlaters().OnlyX(ctx)
 					err := client.LineUser.DeleteOne(lineUser).Exec(ctx)
 					if err != nil {
 						log.Fatal(err)
 					}
-					err = client.CreditLater.DeleteOne(credit_later).Exec(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
+					// err = client.CreditLater.DeleteOne(credit_later).Exec(ctx)
+					// if err != nil {
+					// 	log.Fatal(err)
+					// }
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลบข้อมูลของคูณสำเร็จ")).Do()
 					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do()
 						

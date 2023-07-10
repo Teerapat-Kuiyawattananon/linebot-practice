@@ -1,0 +1,7 @@
+# Ignore environment
+/.idea
+.env
+
+# Ignore images
+*.jpeg
+*.png

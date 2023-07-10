@@ -20,14 +20,18 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 func main() {
+	if err := godotenv.Load(".env") ; err != nil {
+		log.Fatal(err)
+	}
 	flag.Parse()
 	bot, err := linebot.New(
-		"6e45b0810ef87b495b0521a325c82a32",
-		"sKrOayAXwLTFlzAqMGwqw0XXgQDvhcEUBPztcBE4fHNi5ELaB+SJV0jJaU4tgEChhihoNxpUHIA4ztYknKKomjiOoAeKMR+srT9D6zgdlBbDw0BbeYcUU3HulJZS4zVO5/vbxNnxSqN8Grq6V3LQrwdB04t89/1O/w1cDnyilFU=",
+		os.Getenv("LINE_CHANNEL_SECRET"),
+		os.Getenv("LINE_CHANNEL_TOKEN"),	
 	)
 	if err != nil {
 		log.Fatal(err)

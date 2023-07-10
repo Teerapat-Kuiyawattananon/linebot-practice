@@ -25,7 +25,7 @@ var (
 				Symbol:     "cars_users_cars",
 				Columns:    []*schema.Column{CarsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -33,7 +33,7 @@ var (
 	CreditLatersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "transaction_ref", Type: field.TypeString},
-		{Name: "date", Type: field.TypeString, Default: "04/07/2023 13:03"},
+		{Name: "date", Type: field.TypeString, Default: "09/07/2023 10:23"},
 		{Name: "branch", Type: field.TypeString, Default: "Center"},
 		{Name: "amount", Type: field.TypeInt, Default: 0},
 		{Name: "installment", Type: field.TypeInt, Default: 0},
@@ -50,7 +50,7 @@ var (
 				Symbol:     "credit_laters_line_users_creditlaters",
 				Columns:    []*schema.Column{CreditLatersColumns[7]},
 				RefColumns: []*schema.Column{LineUsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -83,7 +83,7 @@ var (
 				Symbol:     "line_logs_line_users_linelogs",
 				Columns:    []*schema.Column{LineLogsColumns[4]},
 				RefColumns: []*schema.Column{LineUsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}

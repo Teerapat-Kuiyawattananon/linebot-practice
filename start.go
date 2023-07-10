@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+
+	// "os"
 	"time"
 
 	"entdemo/ent"
@@ -16,28 +19,33 @@ import (
 	// "entdemo/linebot/route"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	_ "github.com/line/line-bot-sdk-go/v7/linebot/httphandler"
 )
 
 func main() {
+	if err := godotenv.Load(".env") ; err != nil {
+		log.Fatal(err)
+	}
+
 	r := gin.Default()
 
-	client, err := ent.Open("postgres", "host=localhost port=6789 user=teerapat dbname=teerapat password=admin1234 sslmode=disable")
+	client, err := ent.Open("postgres", os.Getenv("PSQL_DB_CONNECT"))
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 
 	defer client.Close()
 	// ctx := context.Background()
-	
+
 	// Run the auto migration tool.
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
 	r.POST("/callback", route.HandlerReply)
-	r.Run(":7777")
+	r.Run(":" + os.Getenv("PORT"))
 }
 
 // ------------------ FUNCTION --------------------

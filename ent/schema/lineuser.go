@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -26,10 +27,12 @@ func (LineUser) Fields() []ent.Field {
 // Edges of the LineUser.
 func (LineUser) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("linelogs", LineLog.Type),
+		edge.To("linelogs", LineLog.Type).
+		Annotations(entsql.OnDelete(entsql.Cascade)),
 
 		// Buy Pay Later
 		edge.To("creditlaters", CreditLater.Type).
+		Annotations(entsql.OnDelete(entsql.Cascade)).
 			Unique(),
 	}
 }
