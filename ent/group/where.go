@@ -124,21 +124,21 @@ func NameContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldName, v))
 }
 
-// HasUsers applies the HasEdge predicate on the "users" edge.
-func HasUsers() predicate.Group {
+// HasLineusers applies the HasEdge predicate on the "lineusers" edge.
+func HasLineusers() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, UsersTable, UsersPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, LineusersTable, LineusersPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
-func HasUsersWith(preds ...predicate.User) predicate.Group {
+// HasLineusersWith applies the HasEdge predicate on the "lineusers" edge with a given conditions (other predicates).
+func HasLineusersWith(preds ...predicate.LineUser) predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {
-		step := newUsersStep()
+		step := newLineusersStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

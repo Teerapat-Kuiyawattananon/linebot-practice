@@ -38,9 +38,13 @@ type LineUserEdges struct {
 	Linelogs []*LineLog `json:"linelogs,omitempty"`
 	// Creditlaters holds the value of the creditlaters edge.
 	Creditlaters *CreditLater `json:"creditlaters,omitempty"`
+	// Cars holds the value of the cars edge.
+	Cars []*Car `json:"cars,omitempty"`
+	// Groups holds the value of the groups edge.
+	Groups []*Group `json:"groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // LinelogsOrErr returns the Linelogs value or an error if the edge
@@ -63,6 +67,24 @@ func (e LineUserEdges) CreditlatersOrErr() (*CreditLater, error) {
 		return e.Creditlaters, nil
 	}
 	return nil, &NotLoadedError{edge: "creditlaters"}
+}
+
+// CarsOrErr returns the Cars value or an error if the edge
+// was not loaded in eager-loading.
+func (e LineUserEdges) CarsOrErr() ([]*Car, error) {
+	if e.loadedTypes[2] {
+		return e.Cars, nil
+	}
+	return nil, &NotLoadedError{edge: "cars"}
+}
+
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e LineUserEdges) GroupsOrErr() ([]*Group, error) {
+	if e.loadedTypes[3] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -144,6 +166,16 @@ func (lu *LineUser) QueryLinelogs() *LineLogQuery {
 // QueryCreditlaters queries the "creditlaters" edge of the LineUser entity.
 func (lu *LineUser) QueryCreditlaters() *CreditLaterQuery {
 	return NewLineUserClient(lu.config).QueryCreditlaters(lu)
+}
+
+// QueryCars queries the "cars" edge of the LineUser entity.
+func (lu *LineUser) QueryCars() *CarQuery {
+	return NewLineUserClient(lu.config).QueryCars(lu)
+}
+
+// QueryGroups queries the "groups" edge of the LineUser entity.
+func (lu *LineUser) QueryGroups() *GroupQuery {
+	return NewLineUserClient(lu.config).QueryGroups(lu)
 }
 
 // Update returns a builder for updating this LineUser.

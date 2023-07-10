@@ -840,12 +840,29 @@ func GetLineLogs(lineuser *ent.LineUser) *linebot.FlexMessage {
 	  ]
 	},
 	{
+        "type": "button",
+        "action": {
+			"type": "postback",
+			"label": "แก้ไข",
+			"data": "changeLogs",
+			"inputOption": "openKeyboard",
+			"fillInText": "แก้ไข Log ที่ %d\nAction: %s"
+		},
+        "color": "#6BB583FF",
+        "height": "sm",
+        "style": "primary"
+      },
+	{
 	  "type": "separator",
 	  "margin": "md"
 	}`
 	tmpStr := ""
-	for _, log := range logs[:5] {
-		tmpStr += fmt.Sprintf(logStrJson, log.Action, log.CreatedAt.Format("02/01/2006"))
+	count := len(logs)
+	if count >= 5 {
+		count = 5
+	}
+	for _, log := range logs[:count] {
+		tmpStr += fmt.Sprintf(logStrJson, log.Action, log.CreatedAt.Format("02/01/2006"), log.ID, log.Action)
 	}
 	// testLog := fmt.Sprintf(logStrJson, "send power", "2022-22-22")
 	testLogAddJson := fmt.Sprintf(jsonStr, lineuser.DisplyaName, tmpStr)
@@ -1000,8 +1017,8 @@ func GetListGroups(client *ent.Client) *linebot.FlexMessage {
 	tmpStr := ""
 	for _, group := range groups {
 		nameStr := ""
-		for _, u := range group.QueryUsers().AllX(context.Background()) {
-			nameStr += u.Name + " "
+		for _, u := range group.QueryLineusers().AllX(context.Background()) {
+			nameStr += u.DisplyaName + " "
 		}
 		tmpStr += fmt.Sprintf(`,
 		{

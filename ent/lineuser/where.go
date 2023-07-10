@@ -301,6 +301,52 @@ func HasCreditlatersWith(preds ...predicate.CreditLater) predicate.LineUser {
 	})
 }
 
+// HasCars applies the HasEdge predicate on the "cars" edge.
+func HasCars() predicate.LineUser {
+	return predicate.LineUser(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CarsTable, CarsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCarsWith applies the HasEdge predicate on the "cars" edge with a given conditions (other predicates).
+func HasCarsWith(preds ...predicate.Car) predicate.LineUser {
+	return predicate.LineUser(func(s *sql.Selector) {
+		step := newCarsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroups applies the HasEdge predicate on the "groups" edge.
+func HasGroups() predicate.LineUser {
+	return predicate.LineUser(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupsWith applies the HasEdge predicate on the "groups" edge with a given conditions (other predicates).
+func HasGroupsWith(preds ...predicate.Group) predicate.LineUser {
+	return predicate.LineUser(func(s *sql.Selector) {
+		step := newGroupsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.LineUser) predicate.LineUser {
 	return predicate.LineUser(func(s *sql.Selector) {

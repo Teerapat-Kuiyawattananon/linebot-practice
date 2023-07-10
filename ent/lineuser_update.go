@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"entdemo/ent/car"
 	"entdemo/ent/creditlater"
+	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
 	"entdemo/ent/predicate"
@@ -104,6 +106,36 @@ func (luu *LineUserUpdate) SetCreditlaters(c *CreditLater) *LineUserUpdate {
 	return luu.SetCreditlatersID(c.ID)
 }
 
+// AddCarIDs adds the "cars" edge to the Car entity by IDs.
+func (luu *LineUserUpdate) AddCarIDs(ids ...int) *LineUserUpdate {
+	luu.mutation.AddCarIDs(ids...)
+	return luu
+}
+
+// AddCars adds the "cars" edges to the Car entity.
+func (luu *LineUserUpdate) AddCars(c ...*Car) *LineUserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return luu.AddCarIDs(ids...)
+}
+
+// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
+func (luu *LineUserUpdate) AddGroupIDs(ids ...int) *LineUserUpdate {
+	luu.mutation.AddGroupIDs(ids...)
+	return luu
+}
+
+// AddGroups adds the "groups" edges to the Group entity.
+func (luu *LineUserUpdate) AddGroups(g ...*Group) *LineUserUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return luu.AddGroupIDs(ids...)
+}
+
 // Mutation returns the LineUserMutation object of the builder.
 func (luu *LineUserUpdate) Mutation() *LineUserMutation {
 	return luu.mutation
@@ -134,6 +166,48 @@ func (luu *LineUserUpdate) RemoveLinelogs(l ...*LineLog) *LineUserUpdate {
 func (luu *LineUserUpdate) ClearCreditlaters() *LineUserUpdate {
 	luu.mutation.ClearCreditlaters()
 	return luu
+}
+
+// ClearCars clears all "cars" edges to the Car entity.
+func (luu *LineUserUpdate) ClearCars() *LineUserUpdate {
+	luu.mutation.ClearCars()
+	return luu
+}
+
+// RemoveCarIDs removes the "cars" edge to Car entities by IDs.
+func (luu *LineUserUpdate) RemoveCarIDs(ids ...int) *LineUserUpdate {
+	luu.mutation.RemoveCarIDs(ids...)
+	return luu
+}
+
+// RemoveCars removes "cars" edges to Car entities.
+func (luu *LineUserUpdate) RemoveCars(c ...*Car) *LineUserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return luu.RemoveCarIDs(ids...)
+}
+
+// ClearGroups clears all "groups" edges to the Group entity.
+func (luu *LineUserUpdate) ClearGroups() *LineUserUpdate {
+	luu.mutation.ClearGroups()
+	return luu
+}
+
+// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
+func (luu *LineUserUpdate) RemoveGroupIDs(ids ...int) *LineUserUpdate {
+	luu.mutation.RemoveGroupIDs(ids...)
+	return luu
+}
+
+// RemoveGroups removes "groups" edges to Group entities.
+func (luu *LineUserUpdate) RemoveGroups(g ...*Group) *LineUserUpdate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return luu.RemoveGroupIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -271,6 +345,96 @@ func (luu *LineUserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if luu.mutation.CarsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luu.mutation.RemovedCarsIDs(); len(nodes) > 0 && !luu.mutation.CarsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luu.mutation.CarsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if luu.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luu.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !luu.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luu.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, luu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{lineuser.Label}
@@ -365,6 +529,36 @@ func (luuo *LineUserUpdateOne) SetCreditlaters(c *CreditLater) *LineUserUpdateOn
 	return luuo.SetCreditlatersID(c.ID)
 }
 
+// AddCarIDs adds the "cars" edge to the Car entity by IDs.
+func (luuo *LineUserUpdateOne) AddCarIDs(ids ...int) *LineUserUpdateOne {
+	luuo.mutation.AddCarIDs(ids...)
+	return luuo
+}
+
+// AddCars adds the "cars" edges to the Car entity.
+func (luuo *LineUserUpdateOne) AddCars(c ...*Car) *LineUserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return luuo.AddCarIDs(ids...)
+}
+
+// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
+func (luuo *LineUserUpdateOne) AddGroupIDs(ids ...int) *LineUserUpdateOne {
+	luuo.mutation.AddGroupIDs(ids...)
+	return luuo
+}
+
+// AddGroups adds the "groups" edges to the Group entity.
+func (luuo *LineUserUpdateOne) AddGroups(g ...*Group) *LineUserUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return luuo.AddGroupIDs(ids...)
+}
+
 // Mutation returns the LineUserMutation object of the builder.
 func (luuo *LineUserUpdateOne) Mutation() *LineUserMutation {
 	return luuo.mutation
@@ -395,6 +589,48 @@ func (luuo *LineUserUpdateOne) RemoveLinelogs(l ...*LineLog) *LineUserUpdateOne 
 func (luuo *LineUserUpdateOne) ClearCreditlaters() *LineUserUpdateOne {
 	luuo.mutation.ClearCreditlaters()
 	return luuo
+}
+
+// ClearCars clears all "cars" edges to the Car entity.
+func (luuo *LineUserUpdateOne) ClearCars() *LineUserUpdateOne {
+	luuo.mutation.ClearCars()
+	return luuo
+}
+
+// RemoveCarIDs removes the "cars" edge to Car entities by IDs.
+func (luuo *LineUserUpdateOne) RemoveCarIDs(ids ...int) *LineUserUpdateOne {
+	luuo.mutation.RemoveCarIDs(ids...)
+	return luuo
+}
+
+// RemoveCars removes "cars" edges to Car entities.
+func (luuo *LineUserUpdateOne) RemoveCars(c ...*Car) *LineUserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return luuo.RemoveCarIDs(ids...)
+}
+
+// ClearGroups clears all "groups" edges to the Group entity.
+func (luuo *LineUserUpdateOne) ClearGroups() *LineUserUpdateOne {
+	luuo.mutation.ClearGroups()
+	return luuo
+}
+
+// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
+func (luuo *LineUserUpdateOne) RemoveGroupIDs(ids ...int) *LineUserUpdateOne {
+	luuo.mutation.RemoveGroupIDs(ids...)
+	return luuo
+}
+
+// RemoveGroups removes "groups" edges to Group entities.
+func (luuo *LineUserUpdateOne) RemoveGroups(g ...*Group) *LineUserUpdateOne {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return luuo.RemoveGroupIDs(ids...)
 }
 
 // Where appends a list predicates to the LineUserUpdate builder.
@@ -555,6 +791,96 @@ func (luuo *LineUserUpdateOne) sqlSave(ctx context.Context) (_node *LineUser, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(creditlater.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if luuo.mutation.CarsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luuo.mutation.RemovedCarsIDs(); len(nodes) > 0 && !luuo.mutation.CarsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luuo.mutation.CarsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if luuo.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luuo.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !luuo.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luuo.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"entdemo/ent/group"
+	"entdemo/ent/lineuser"
 	"entdemo/ent/predicate"
-	"entdemo/ent/user"
 	"errors"
 	"fmt"
 
@@ -34,19 +34,19 @@ func (gu *GroupUpdate) SetName(s string) *GroupUpdate {
 	return gu
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (gu *GroupUpdate) AddUserIDs(ids ...int) *GroupUpdate {
-	gu.mutation.AddUserIDs(ids...)
+// AddLineuserIDs adds the "lineusers" edge to the LineUser entity by IDs.
+func (gu *GroupUpdate) AddLineuserIDs(ids ...int) *GroupUpdate {
+	gu.mutation.AddLineuserIDs(ids...)
 	return gu
 }
 
-// AddUsers adds the "users" edges to the User entity.
-func (gu *GroupUpdate) AddUsers(u ...*User) *GroupUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddLineusers adds the "lineusers" edges to the LineUser entity.
+func (gu *GroupUpdate) AddLineusers(l ...*LineUser) *GroupUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return gu.AddUserIDs(ids...)
+	return gu.AddLineuserIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -54,25 +54,25 @@ func (gu *GroupUpdate) Mutation() *GroupMutation {
 	return gu.mutation
 }
 
-// ClearUsers clears all "users" edges to the User entity.
-func (gu *GroupUpdate) ClearUsers() *GroupUpdate {
-	gu.mutation.ClearUsers()
+// ClearLineusers clears all "lineusers" edges to the LineUser entity.
+func (gu *GroupUpdate) ClearLineusers() *GroupUpdate {
+	gu.mutation.ClearLineusers()
 	return gu
 }
 
-// RemoveUserIDs removes the "users" edge to User entities by IDs.
-func (gu *GroupUpdate) RemoveUserIDs(ids ...int) *GroupUpdate {
-	gu.mutation.RemoveUserIDs(ids...)
+// RemoveLineuserIDs removes the "lineusers" edge to LineUser entities by IDs.
+func (gu *GroupUpdate) RemoveLineuserIDs(ids ...int) *GroupUpdate {
+	gu.mutation.RemoveLineuserIDs(ids...)
 	return gu
 }
 
-// RemoveUsers removes "users" edges to User entities.
-func (gu *GroupUpdate) RemoveUsers(u ...*User) *GroupUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveLineusers removes "lineusers" edges to LineUser entities.
+func (gu *GroupUpdate) RemoveLineusers(l ...*LineUser) *GroupUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return gu.RemoveUserIDs(ids...)
+	return gu.RemoveLineuserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -127,28 +127,28 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)
 	}
-	if gu.mutation.UsersCleared() {
+	if gu.mutation.LineusersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.RemovedUsersIDs(); len(nodes) > 0 && !gu.mutation.UsersCleared() {
+	if nodes := gu.mutation.RemovedLineusersIDs(); len(nodes) > 0 && !gu.mutation.LineusersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -156,15 +156,15 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := gu.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := gu.mutation.LineusersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -198,19 +198,19 @@ func (guo *GroupUpdateOne) SetName(s string) *GroupUpdateOne {
 	return guo
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (guo *GroupUpdateOne) AddUserIDs(ids ...int) *GroupUpdateOne {
-	guo.mutation.AddUserIDs(ids...)
+// AddLineuserIDs adds the "lineusers" edge to the LineUser entity by IDs.
+func (guo *GroupUpdateOne) AddLineuserIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.AddLineuserIDs(ids...)
 	return guo
 }
 
-// AddUsers adds the "users" edges to the User entity.
-func (guo *GroupUpdateOne) AddUsers(u ...*User) *GroupUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddLineusers adds the "lineusers" edges to the LineUser entity.
+func (guo *GroupUpdateOne) AddLineusers(l ...*LineUser) *GroupUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return guo.AddUserIDs(ids...)
+	return guo.AddLineuserIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -218,25 +218,25 @@ func (guo *GroupUpdateOne) Mutation() *GroupMutation {
 	return guo.mutation
 }
 
-// ClearUsers clears all "users" edges to the User entity.
-func (guo *GroupUpdateOne) ClearUsers() *GroupUpdateOne {
-	guo.mutation.ClearUsers()
+// ClearLineusers clears all "lineusers" edges to the LineUser entity.
+func (guo *GroupUpdateOne) ClearLineusers() *GroupUpdateOne {
+	guo.mutation.ClearLineusers()
 	return guo
 }
 
-// RemoveUserIDs removes the "users" edge to User entities by IDs.
-func (guo *GroupUpdateOne) RemoveUserIDs(ids ...int) *GroupUpdateOne {
-	guo.mutation.RemoveUserIDs(ids...)
+// RemoveLineuserIDs removes the "lineusers" edge to LineUser entities by IDs.
+func (guo *GroupUpdateOne) RemoveLineuserIDs(ids ...int) *GroupUpdateOne {
+	guo.mutation.RemoveLineuserIDs(ids...)
 	return guo
 }
 
-// RemoveUsers removes "users" edges to User entities.
-func (guo *GroupUpdateOne) RemoveUsers(u ...*User) *GroupUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveLineusers removes "lineusers" edges to LineUser entities.
+func (guo *GroupUpdateOne) RemoveLineusers(l ...*LineUser) *GroupUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return guo.RemoveUserIDs(ids...)
+	return guo.RemoveLineuserIDs(ids...)
 }
 
 // Where appends a list predicates to the GroupUpdate builder.
@@ -321,28 +321,28 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	if value, ok := guo.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)
 	}
-	if guo.mutation.UsersCleared() {
+	if guo.mutation.LineusersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.RemovedUsersIDs(); len(nodes) > 0 && !guo.mutation.UsersCleared() {
+	if nodes := guo.mutation.RemovedLineusersIDs(); len(nodes) > 0 && !guo.mutation.LineusersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -350,15 +350,15 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := guo.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := guo.mutation.LineusersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

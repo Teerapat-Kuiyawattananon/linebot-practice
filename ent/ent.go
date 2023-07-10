@@ -9,7 +9,6 @@ import (
 	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
-	"entdemo/ent/user"
 	"errors"
 	"fmt"
 	"reflect"
@@ -83,7 +82,6 @@ func checkColumn(table, column string) error {
 			group.Table:       group.ValidColumn,
 			linelog.Table:     linelog.ValidColumn,
 			lineuser.Table:    lineuser.ValidColumn,
-			user.Table:        user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -34,5 +34,11 @@ func (LineUser) Edges() []ent.Edge {
 		edge.To("creditlaters", CreditLater.Type).
 		Annotations(entsql.OnDelete(entsql.Cascade)).
 			Unique(),
+
+		edge.To("cars", Car.Type).
+		Annotations(entsql.OnDelete(entsql.Cascade)),
+
+		edge.From("groups", Group.Type).
+			Ref("lineusers"),
 	}
 }

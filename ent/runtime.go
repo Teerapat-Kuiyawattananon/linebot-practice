@@ -3,12 +3,12 @@
 package ent
 
 import (
+	"entdemo/ent/car"
 	"entdemo/ent/creditlater"
 	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
 	"entdemo/ent/schema"
-	"entdemo/ent/user"
 	"time"
 )
 
@@ -16,6 +16,20 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	carFields := schema.Car{}.Fields()
+	_ = carFields
+	// carDescRegisteredAt is the schema descriptor for registered_at field.
+	carDescRegisteredAt := carFields[1].Descriptor()
+	// car.DefaultRegisteredAt holds the default value on creation for the registered_at field.
+	car.DefaultRegisteredAt = carDescRegisteredAt.Default.(func() time.Time)
+	// carDescPrice is the schema descriptor for price field.
+	carDescPrice := carFields[2].Descriptor()
+	// car.DefaultPrice holds the default value on creation for the price field.
+	car.DefaultPrice = carDescPrice.Default.(int)
+	// carDescImagePath is the schema descriptor for image_path field.
+	carDescImagePath := carFields[3].Descriptor()
+	// car.DefaultImagePath holds the default value on creation for the image_path field.
+	car.DefaultImagePath = carDescImagePath.Default.(string)
 	creditlaterFields := schema.CreditLater{}.Fields()
 	_ = creditlaterFields
 	// creditlaterDescTransactionRef is the schema descriptor for transaction_ref field.
@@ -76,14 +90,4 @@ func init() {
 	lineuserDescActive := lineuserFields[3].Descriptor()
 	// lineuser.DefaultActive holds the default value on creation for the active field.
 	lineuser.DefaultActive = lineuserDescActive.Default.(bool)
-	userFields := schema.User{}.Fields()
-	_ = userFields
-	// userDescAge is the schema descriptor for age field.
-	userDescAge := userFields[0].Descriptor()
-	// user.AgeValidator is a validator for the "age" field. It is called by the builders before save.
-	user.AgeValidator = userDescAge.Validators[0].(func(int) error)
-	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[1].Descriptor()
-	// user.DefaultName holds the default value on creation for the name field.
-	user.DefaultName = userDescName.Default.(string)
 }

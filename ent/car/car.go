@@ -3,6 +3,8 @@
 package car
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -16,17 +18,21 @@ const (
 	FieldModel = "model"
 	// FieldRegisteredAt holds the string denoting the registered_at field in the database.
 	FieldRegisteredAt = "registered_at"
+	// FieldPrice holds the string denoting the price field in the database.
+	FieldPrice = "price"
+	// FieldImagePath holds the string denoting the image_path field in the database.
+	FieldImagePath = "image_path"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// Table holds the table name of the car in the database.
 	Table = "cars"
 	// OwnerTable is the table that holds the owner relation/edge.
 	OwnerTable = "cars"
-	// OwnerInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	OwnerInverseTable = "users"
+	// OwnerInverseTable is the table name for the LineUser entity.
+	// It exists in this package in order to avoid circular dependency with the "lineuser" package.
+	OwnerInverseTable = "line_users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "user_cars"
+	OwnerColumn = "line_user_cars"
 )
 
 // Columns holds all SQL columns for car fields.
@@ -34,12 +40,14 @@ var Columns = []string{
 	FieldID,
 	FieldModel,
 	FieldRegisteredAt,
+	FieldPrice,
+	FieldImagePath,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "cars"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"user_cars",
+	"line_user_cars",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -57,6 +65,15 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultRegisteredAt holds the default value on creation for the "registered_at" field.
+	DefaultRegisteredAt func() time.Time
+	// DefaultPrice holds the default value on creation for the "price" field.
+	DefaultPrice int
+	// DefaultImagePath holds the default value on creation for the "image_path" field.
+	DefaultImagePath string
+)
+
 // OrderOption defines the ordering options for the Car queries.
 type OrderOption func(*sql.Selector)
 
@@ -73,6 +90,16 @@ func ByModel(opts ...sql.OrderTermOption) OrderOption {
 // ByRegisteredAt orders the results by the registered_at field.
 func ByRegisteredAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRegisteredAt, opts...).ToFunc()
+}
+
+// ByPrice orders the results by the price field.
+func ByPrice(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrice, opts...).ToFunc()
+}
+
+// ByImagePath orders the results by the image_path field.
+func ByImagePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImagePath, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

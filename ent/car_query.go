@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"entdemo/ent/car"
+	"entdemo/ent/lineuser"
 	"entdemo/ent/predicate"
-	"entdemo/ent/user"
 	"fmt"
 	"math"
 
@@ -22,7 +22,7 @@ type CarQuery struct {
 	order      []car.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Car
-	withOwner  *UserQuery
+	withOwner  *LineUserQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -61,8 +61,8 @@ func (cq *CarQuery) Order(o ...car.OrderOption) *CarQuery {
 }
 
 // QueryOwner chains the current query on the "owner" edge.
-func (cq *CarQuery) QueryOwner() *UserQuery {
-	query := (&UserClient{config: cq.config}).Query()
+func (cq *CarQuery) QueryOwner() *LineUserQuery {
+	query := (&LineUserClient{config: cq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -73,7 +73,7 @@ func (cq *CarQuery) QueryOwner() *UserQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(car.Table, car.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.To(lineuser.Table, lineuser.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, car.OwnerTable, car.OwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
@@ -283,8 +283,8 @@ func (cq *CarQuery) Clone() *CarQuery {
 
 // WithOwner tells the query-builder to eager-load the nodes that are connected to
 // the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *CarQuery) WithOwner(opts ...func(*UserQuery)) *CarQuery {
-	query := (&UserClient{config: cq.config}).Query()
+func (cq *CarQuery) WithOwner(opts ...func(*LineUserQuery)) *CarQuery {
+	query := (&LineUserClient{config: cq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -401,21 +401,21 @@ func (cq *CarQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Car, err
 	}
 	if query := cq.withOwner; query != nil {
 		if err := cq.loadOwner(ctx, query, nodes, nil,
-			func(n *Car, e *User) { n.Edges.Owner = e }); err != nil {
+			func(n *Car, e *LineUser) { n.Edges.Owner = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (cq *CarQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Car, init func(*Car), assign func(*Car, *User)) error {
+func (cq *CarQuery) loadOwner(ctx context.Context, query *LineUserQuery, nodes []*Car, init func(*Car), assign func(*Car, *LineUser)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Car)
 	for i := range nodes {
-		if nodes[i].user_cars == nil {
+		if nodes[i].line_user_cars == nil {
 			continue
 		}
-		fk := *nodes[i].user_cars
+		fk := *nodes[i].line_user_cars
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -424,7 +424,7 @@ func (cq *CarQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Ca
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(user.IDIn(ids...))
+	query.Where(lineuser.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -432,7 +432,7 @@ func (cq *CarQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Ca
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_cars" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "line_user_cars" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

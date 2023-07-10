@@ -5,7 +5,7 @@ package ent
 import (
 	"context"
 	"entdemo/ent/group"
-	"entdemo/ent/user"
+	"entdemo/ent/lineuser"
 	"errors"
 	"fmt"
 
@@ -26,19 +26,19 @@ func (gc *GroupCreate) SetName(s string) *GroupCreate {
 	return gc
 }
 
-// AddUserIDs adds the "users" edge to the User entity by IDs.
-func (gc *GroupCreate) AddUserIDs(ids ...int) *GroupCreate {
-	gc.mutation.AddUserIDs(ids...)
+// AddLineuserIDs adds the "lineusers" edge to the LineUser entity by IDs.
+func (gc *GroupCreate) AddLineuserIDs(ids ...int) *GroupCreate {
+	gc.mutation.AddLineuserIDs(ids...)
 	return gc
 }
 
-// AddUsers adds the "users" edges to the User entity.
-func (gc *GroupCreate) AddUsers(u ...*User) *GroupCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddLineusers adds the "lineusers" edges to the LineUser entity.
+func (gc *GroupCreate) AddLineusers(l ...*LineUser) *GroupCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
-	return gc.AddUserIDs(ids...)
+	return gc.AddLineuserIDs(ids...)
 }
 
 // Mutation returns the GroupMutation object of the builder.
@@ -113,15 +113,15 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 		_spec.SetField(group.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if nodes := gc.mutation.UsersIDs(); len(nodes) > 0 {
+	if nodes := gc.mutation.LineusersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   group.UsersTable,
-			Columns: group.UsersPrimaryKey,
+			Table:   group.LineusersTable,
+			Columns: group.LineusersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

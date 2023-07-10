@@ -20,6 +20,3 @@ type LineLog func(*sql.Selector)
 
 // LineUser is the predicate function for lineuser builders.
 type LineUser func(*sql.Selector)
-
-// User is the predicate function for user builders.
-type User func(*sql.Selector)

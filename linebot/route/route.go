@@ -3,11 +3,10 @@ package route
 import (
 	"context"
 	"entdemo/ent"
-	"entdemo/ent/car"
+	_ "entdemo/ent/car"
 	_ "entdemo/ent/creditlater"
+	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
-	"entdemo/ent/user"
-	_ "entdemo/ent/user"
 	"entdemo/linebot/richmessage"
 	"fmt"
 	"log"
@@ -68,7 +67,7 @@ func HandlerReply(c *gin.Context) {
 		if event.Type == linebot.EventTypeMessage {
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				// CreateLineLog(ctx, client, event.Source.UserID, "send msg", message.Text)
+				CreateLineLog(ctx, client, event.Source.UserID, "send msg", message.Text)
 				var lineUser *ent.LineUser
 				if (client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) != 0){
 					lineUser = client.LineUser.
@@ -95,41 +94,12 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, richmessage.GetSinTrustFlexMessage(lineUser)).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				} else if message.Text == "New" {
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Name: \nAge: ")).Do()
-				} else if msg := message.Text; strings.Contains(msg, "Name: \nAge: ") {
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("true")).Do()
-				} else if match, _ := regexp.MatchString("Name: ([A-Za-z]+)\nAge: ([0-9]+)", message.Text); match == true {
-					str := strings.Split(message.Text, "\n")
-					name := str[0][6:]
-					strAge := str[1][5:]
-					age, _ := strconv.Atoi(strAge)
-					fmt.Println(name + "\n" + strAge)
-					u, err := client.User.Create().
-						SetName(name).
-						SetAge(age).
-						Save(ctx)
-					if err != nil {
-						log.Fatal(err)
-						return
-					}
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Created success : "+u.String())).Do()
 				} else if message.Text == "Logs" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetLineLogs(lineUser)).Do()
-				} else if match, _ := regexp.MatchString("Delete: [A-Za-z]+", message.Text); match == true {
-					name := message.Text[8:]
-					u := client.User.Query().
-						Where(user.Name(name)).
-						OnlyX(ctx)
-					err := client.User.DeleteOne(u).Exec(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("Delete "+name+" Success")).Do()
 				} else if message.Text == "แก้ไขวันที่" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
@@ -217,76 +187,38 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("แก้ไขจำนวนเงินของคุณเป็น " + newAmount + " สำเร็จ")).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				} else if message.Text == "Test" {
-					arm := client.User.Query().
-						Where(user.Name("arm")).
-						OnlyX(ctx)
-					// err := client.User.DeleteOne(arm).
-					// 	Exec(ctx)
-					// if err != nil {
-					// 	log.Fatal(err)
-					// }
-					affected, err := client.Car.Delete().Where(car.HasOwnerWith(user.Name(arm.Name))).Exec(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					err = client.User.DeleteOne(arm).Exec(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					log.Println(affected)
-					
-				} else if message.Text == "Car" {
-					tesla, err := client.Car.Create().
-						SetModel("Tesla").
-						SetRegisteredAt(time.Now()).
-						Save(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					log.Println("car was created: ", tesla)
-
-					// Create Car
-					ford, err := client.Car.Create().
-						SetModel("Ford").
-						SetRegisteredAt(time.Now()).
-						Save(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					log.Println("car was created: ", ford)
-
-					// Create User then add two cars to User
-					u, err := client.User.Create().
-						SetAge(25).
-						SetName("arm").
-						AddCars(tesla, ford).
-						Save(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
-					log.Println("user was created: ", u)
-					
-				} else if message.Text == "Delete car" {
-					user := client.User.Query().Where(user.Name("arm")).OnlyX(ctx)
-					err := client.User.DeleteOne(user).Exec(ctx)
-					if err != nil {
-						log.Fatal(err)
-					}
 				} else if message.Text == "Delete line" {
+
 					// delete LineUser
-					// credit_later := lineUser.QueryCreditlaters().OnlyX(ctx)
 					err := client.LineUser.DeleteOne(lineUser).Exec(ctx)
 					if err != nil {
 						log.Fatal(err)
 					}
-					// err = client.CreditLater.DeleteOne(credit_later).Exec(ctx)
-					// if err != nil {
-					// 	log.Fatal(err)
-					// }
+
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลบข้อมูลของคูณสำเร็จ")).Do()
 					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do()
 						
+				} else if message.Text == "เพิ่มรถ" {
+					
+
+
+				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text) ; match {
+					msgLine := strings.Split(message.Text, "\n")
+					logID, _ := strconv.Atoi(msgLine[0][30:])
+					logAction := msgLine[1][8:]
+					
+					line_log, err := client.LineLog.
+						Query().
+						Where(linelog.ID(logID)).
+						FirstX(ctx).
+						Update().
+						SetAction(logAction).
+						Save(ctx)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(fmt.Sprintf("แก้ไข Action's Log ที่ %d เป็น %s เรียบร้อย", line_log.ID, line_log.Action))).Do()
 				}else {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดข้อมูล" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
 														linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()

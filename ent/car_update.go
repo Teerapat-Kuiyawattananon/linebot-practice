@@ -5,8 +5,8 @@ package ent
 import (
 	"context"
 	"entdemo/ent/car"
+	"entdemo/ent/lineuser"
 	"entdemo/ent/predicate"
-	"entdemo/ent/user"
 	"errors"
 	"fmt"
 	"time"
@@ -41,13 +41,56 @@ func (cu *CarUpdate) SetRegisteredAt(t time.Time) *CarUpdate {
 	return cu
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by ID.
+// SetNillableRegisteredAt sets the "registered_at" field if the given value is not nil.
+func (cu *CarUpdate) SetNillableRegisteredAt(t *time.Time) *CarUpdate {
+	if t != nil {
+		cu.SetRegisteredAt(*t)
+	}
+	return cu
+}
+
+// SetPrice sets the "price" field.
+func (cu *CarUpdate) SetPrice(i int) *CarUpdate {
+	cu.mutation.ResetPrice()
+	cu.mutation.SetPrice(i)
+	return cu
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (cu *CarUpdate) SetNillablePrice(i *int) *CarUpdate {
+	if i != nil {
+		cu.SetPrice(*i)
+	}
+	return cu
+}
+
+// AddPrice adds i to the "price" field.
+func (cu *CarUpdate) AddPrice(i int) *CarUpdate {
+	cu.mutation.AddPrice(i)
+	return cu
+}
+
+// SetImagePath sets the "image_path" field.
+func (cu *CarUpdate) SetImagePath(s string) *CarUpdate {
+	cu.mutation.SetImagePath(s)
+	return cu
+}
+
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (cu *CarUpdate) SetNillableImagePath(s *string) *CarUpdate {
+	if s != nil {
+		cu.SetImagePath(*s)
+	}
+	return cu
+}
+
+// SetOwnerID sets the "owner" edge to the LineUser entity by ID.
 func (cu *CarUpdate) SetOwnerID(id int) *CarUpdate {
 	cu.mutation.SetOwnerID(id)
 	return cu
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+// SetNillableOwnerID sets the "owner" edge to the LineUser entity by ID if the given value is not nil.
 func (cu *CarUpdate) SetNillableOwnerID(id *int) *CarUpdate {
 	if id != nil {
 		cu = cu.SetOwnerID(*id)
@@ -55,9 +98,9 @@ func (cu *CarUpdate) SetNillableOwnerID(id *int) *CarUpdate {
 	return cu
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (cu *CarUpdate) SetOwner(u *User) *CarUpdate {
-	return cu.SetOwnerID(u.ID)
+// SetOwner sets the "owner" edge to the LineUser entity.
+func (cu *CarUpdate) SetOwner(l *LineUser) *CarUpdate {
+	return cu.SetOwnerID(l.ID)
 }
 
 // Mutation returns the CarMutation object of the builder.
@@ -65,7 +108,7 @@ func (cu *CarUpdate) Mutation() *CarMutation {
 	return cu.mutation
 }
 
-// ClearOwner clears the "owner" edge to the User entity.
+// ClearOwner clears the "owner" edge to the LineUser entity.
 func (cu *CarUpdate) ClearOwner() *CarUpdate {
 	cu.mutation.ClearOwner()
 	return cu
@@ -113,6 +156,15 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.RegisteredAt(); ok {
 		_spec.SetField(car.FieldRegisteredAt, field.TypeTime, value)
 	}
+	if value, ok := cu.mutation.Price(); ok {
+		_spec.SetField(car.FieldPrice, field.TypeInt, value)
+	}
+	if value, ok := cu.mutation.AddedPrice(); ok {
+		_spec.AddField(car.FieldPrice, field.TypeInt, value)
+	}
+	if value, ok := cu.mutation.ImagePath(); ok {
+		_spec.SetField(car.FieldImagePath, field.TypeString, value)
+	}
 	if cu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -121,7 +173,7 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{car.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -134,7 +186,7 @@ func (cu *CarUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{car.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -174,13 +226,56 @@ func (cuo *CarUpdateOne) SetRegisteredAt(t time.Time) *CarUpdateOne {
 	return cuo
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by ID.
+// SetNillableRegisteredAt sets the "registered_at" field if the given value is not nil.
+func (cuo *CarUpdateOne) SetNillableRegisteredAt(t *time.Time) *CarUpdateOne {
+	if t != nil {
+		cuo.SetRegisteredAt(*t)
+	}
+	return cuo
+}
+
+// SetPrice sets the "price" field.
+func (cuo *CarUpdateOne) SetPrice(i int) *CarUpdateOne {
+	cuo.mutation.ResetPrice()
+	cuo.mutation.SetPrice(i)
+	return cuo
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (cuo *CarUpdateOne) SetNillablePrice(i *int) *CarUpdateOne {
+	if i != nil {
+		cuo.SetPrice(*i)
+	}
+	return cuo
+}
+
+// AddPrice adds i to the "price" field.
+func (cuo *CarUpdateOne) AddPrice(i int) *CarUpdateOne {
+	cuo.mutation.AddPrice(i)
+	return cuo
+}
+
+// SetImagePath sets the "image_path" field.
+func (cuo *CarUpdateOne) SetImagePath(s string) *CarUpdateOne {
+	cuo.mutation.SetImagePath(s)
+	return cuo
+}
+
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (cuo *CarUpdateOne) SetNillableImagePath(s *string) *CarUpdateOne {
+	if s != nil {
+		cuo.SetImagePath(*s)
+	}
+	return cuo
+}
+
+// SetOwnerID sets the "owner" edge to the LineUser entity by ID.
 func (cuo *CarUpdateOne) SetOwnerID(id int) *CarUpdateOne {
 	cuo.mutation.SetOwnerID(id)
 	return cuo
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+// SetNillableOwnerID sets the "owner" edge to the LineUser entity by ID if the given value is not nil.
 func (cuo *CarUpdateOne) SetNillableOwnerID(id *int) *CarUpdateOne {
 	if id != nil {
 		cuo = cuo.SetOwnerID(*id)
@@ -188,9 +283,9 @@ func (cuo *CarUpdateOne) SetNillableOwnerID(id *int) *CarUpdateOne {
 	return cuo
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (cuo *CarUpdateOne) SetOwner(u *User) *CarUpdateOne {
-	return cuo.SetOwnerID(u.ID)
+// SetOwner sets the "owner" edge to the LineUser entity.
+func (cuo *CarUpdateOne) SetOwner(l *LineUser) *CarUpdateOne {
+	return cuo.SetOwnerID(l.ID)
 }
 
 // Mutation returns the CarMutation object of the builder.
@@ -198,7 +293,7 @@ func (cuo *CarUpdateOne) Mutation() *CarMutation {
 	return cuo.mutation
 }
 
-// ClearOwner clears the "owner" edge to the User entity.
+// ClearOwner clears the "owner" edge to the LineUser entity.
 func (cuo *CarUpdateOne) ClearOwner() *CarUpdateOne {
 	cuo.mutation.ClearOwner()
 	return cuo
@@ -276,6 +371,15 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (_node *Car, err error) {
 	if value, ok := cuo.mutation.RegisteredAt(); ok {
 		_spec.SetField(car.FieldRegisteredAt, field.TypeTime, value)
 	}
+	if value, ok := cuo.mutation.Price(); ok {
+		_spec.SetField(car.FieldPrice, field.TypeInt, value)
+	}
+	if value, ok := cuo.mutation.AddedPrice(); ok {
+		_spec.AddField(car.FieldPrice, field.TypeInt, value)
+	}
+	if value, ok := cuo.mutation.ImagePath(); ok {
+		_spec.SetField(car.FieldImagePath, field.TypeString, value)
+	}
 	if cuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -284,7 +388,7 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (_node *Car, err error) {
 			Columns: []string{car.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -297,7 +401,7 @@ func (cuo *CarUpdateOne) sqlSave(ctx context.Context) (_node *Car, err error) {
 			Columns: []string{car.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

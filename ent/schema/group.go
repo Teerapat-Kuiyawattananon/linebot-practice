@@ -24,6 +24,6 @@ func (Group) Fields() []ent.Field {
 // Edges of the Group.
 func (Group) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("users", User.Type),
+		edge.To("lineusers", LineUser.Type),
 	}
 }

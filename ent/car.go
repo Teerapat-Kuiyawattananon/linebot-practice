@@ -4,7 +4,7 @@ package ent
 
 import (
 	"entdemo/ent/car"
-	"entdemo/ent/user"
+	"entdemo/ent/lineuser"
 	"fmt"
 	"strings"
 	"time"
@@ -22,17 +22,21 @@ type Car struct {
 	Model string `json:"model,omitempty"`
 	// RegisteredAt holds the value of the "registered_at" field.
 	RegisteredAt time.Time `json:"registered_at,omitempty"`
+	// Price holds the value of the "price" field.
+	Price int `json:"price,omitempty"`
+	// ImagePath holds the value of the "image_path" field.
+	ImagePath string `json:"image_path,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CarQuery when eager-loading is set.
-	Edges        CarEdges `json:"edges"`
-	user_cars    *int
-	selectValues sql.SelectValues
+	Edges          CarEdges `json:"edges"`
+	line_user_cars *int
+	selectValues   sql.SelectValues
 }
 
 // CarEdges holds the relations/edges for other nodes in the graph.
 type CarEdges struct {
 	// Owner holds the value of the owner edge.
-	Owner *User `json:"owner,omitempty"`
+	Owner *LineUser `json:"owner,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
@@ -40,11 +44,11 @@ type CarEdges struct {
 
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e CarEdges) OwnerOrErr() (*User, error) {
+func (e CarEdges) OwnerOrErr() (*LineUser, error) {
 	if e.loadedTypes[0] {
 		if e.Owner == nil {
 			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
+			return nil, &NotFoundError{label: lineuser.Label}
 		}
 		return e.Owner, nil
 	}
@@ -56,13 +60,13 @@ func (*Car) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case car.FieldID:
+		case car.FieldID, car.FieldPrice:
 			values[i] = new(sql.NullInt64)
-		case car.FieldModel:
+		case car.FieldModel, car.FieldImagePath:
 			values[i] = new(sql.NullString)
 		case car.FieldRegisteredAt:
 			values[i] = new(sql.NullTime)
-		case car.ForeignKeys[0]: // user_cars
+		case car.ForeignKeys[0]: // line_user_cars
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -97,12 +101,24 @@ func (c *Car) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.RegisteredAt = value.Time
 			}
+		case car.FieldPrice:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field price", values[i])
+			} else if value.Valid {
+				c.Price = int(value.Int64)
+			}
+		case car.FieldImagePath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field image_path", values[i])
+			} else if value.Valid {
+				c.ImagePath = value.String
+			}
 		case car.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_cars", value)
+				return fmt.Errorf("unexpected type %T for edge-field line_user_cars", value)
 			} else if value.Valid {
-				c.user_cars = new(int)
-				*c.user_cars = int(value.Int64)
+				c.line_user_cars = new(int)
+				*c.line_user_cars = int(value.Int64)
 			}
 		default:
 			c.selectValues.Set(columns[i], values[i])
@@ -118,7 +134,7 @@ func (c *Car) Value(name string) (ent.Value, error) {
 }
 
 // QueryOwner queries the "owner" edge of the Car entity.
-func (c *Car) QueryOwner() *UserQuery {
+func (c *Car) QueryOwner() *LineUserQuery {
 	return NewCarClient(c.config).QueryOwner(c)
 }
 
@@ -150,6 +166,12 @@ func (c *Car) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("registered_at=")
 	builder.WriteString(c.RegisteredAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("price=")
+	builder.WriteString(fmt.Sprintf("%v", c.Price))
+	builder.WriteString(", ")
+	builder.WriteString("image_path=")
+	builder.WriteString(c.ImagePath)
 	builder.WriteByte(')')
 	return builder.String()
 }

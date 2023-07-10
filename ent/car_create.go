@@ -5,7 +5,7 @@ package ent
 import (
 	"context"
 	"entdemo/ent/car"
-	"entdemo/ent/user"
+	"entdemo/ent/lineuser"
 	"errors"
 	"fmt"
 	"time"
@@ -33,13 +33,49 @@ func (cc *CarCreate) SetRegisteredAt(t time.Time) *CarCreate {
 	return cc
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by ID.
+// SetNillableRegisteredAt sets the "registered_at" field if the given value is not nil.
+func (cc *CarCreate) SetNillableRegisteredAt(t *time.Time) *CarCreate {
+	if t != nil {
+		cc.SetRegisteredAt(*t)
+	}
+	return cc
+}
+
+// SetPrice sets the "price" field.
+func (cc *CarCreate) SetPrice(i int) *CarCreate {
+	cc.mutation.SetPrice(i)
+	return cc
+}
+
+// SetNillablePrice sets the "price" field if the given value is not nil.
+func (cc *CarCreate) SetNillablePrice(i *int) *CarCreate {
+	if i != nil {
+		cc.SetPrice(*i)
+	}
+	return cc
+}
+
+// SetImagePath sets the "image_path" field.
+func (cc *CarCreate) SetImagePath(s string) *CarCreate {
+	cc.mutation.SetImagePath(s)
+	return cc
+}
+
+// SetNillableImagePath sets the "image_path" field if the given value is not nil.
+func (cc *CarCreate) SetNillableImagePath(s *string) *CarCreate {
+	if s != nil {
+		cc.SetImagePath(*s)
+	}
+	return cc
+}
+
+// SetOwnerID sets the "owner" edge to the LineUser entity by ID.
 func (cc *CarCreate) SetOwnerID(id int) *CarCreate {
 	cc.mutation.SetOwnerID(id)
 	return cc
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+// SetNillableOwnerID sets the "owner" edge to the LineUser entity by ID if the given value is not nil.
 func (cc *CarCreate) SetNillableOwnerID(id *int) *CarCreate {
 	if id != nil {
 		cc = cc.SetOwnerID(*id)
@@ -47,9 +83,9 @@ func (cc *CarCreate) SetNillableOwnerID(id *int) *CarCreate {
 	return cc
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (cc *CarCreate) SetOwner(u *User) *CarCreate {
-	return cc.SetOwnerID(u.ID)
+// SetOwner sets the "owner" edge to the LineUser entity.
+func (cc *CarCreate) SetOwner(l *LineUser) *CarCreate {
+	return cc.SetOwnerID(l.ID)
 }
 
 // Mutation returns the CarMutation object of the builder.
@@ -59,6 +95,7 @@ func (cc *CarCreate) Mutation() *CarMutation {
 
 // Save creates the Car in the database.
 func (cc *CarCreate) Save(ctx context.Context) (*Car, error) {
+	cc.defaults()
 	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -84,6 +121,22 @@ func (cc *CarCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cc *CarCreate) defaults() {
+	if _, ok := cc.mutation.RegisteredAt(); !ok {
+		v := car.DefaultRegisteredAt()
+		cc.mutation.SetRegisteredAt(v)
+	}
+	if _, ok := cc.mutation.Price(); !ok {
+		v := car.DefaultPrice
+		cc.mutation.SetPrice(v)
+	}
+	if _, ok := cc.mutation.ImagePath(); !ok {
+		v := car.DefaultImagePath
+		cc.mutation.SetImagePath(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (cc *CarCreate) check() error {
 	if _, ok := cc.mutation.Model(); !ok {
@@ -91,6 +144,12 @@ func (cc *CarCreate) check() error {
 	}
 	if _, ok := cc.mutation.RegisteredAt(); !ok {
 		return &ValidationError{Name: "registered_at", err: errors.New(`ent: missing required field "Car.registered_at"`)}
+	}
+	if _, ok := cc.mutation.Price(); !ok {
+		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Car.price"`)}
+	}
+	if _, ok := cc.mutation.ImagePath(); !ok {
+		return &ValidationError{Name: "image_path", err: errors.New(`ent: missing required field "Car.image_path"`)}
 	}
 	return nil
 }
@@ -126,6 +185,14 @@ func (cc *CarCreate) createSpec() (*Car, *sqlgraph.CreateSpec) {
 		_spec.SetField(car.FieldRegisteredAt, field.TypeTime, value)
 		_node.RegisteredAt = value
 	}
+	if value, ok := cc.mutation.Price(); ok {
+		_spec.SetField(car.FieldPrice, field.TypeInt, value)
+		_node.Price = value
+	}
+	if value, ok := cc.mutation.ImagePath(); ok {
+		_spec.SetField(car.FieldImagePath, field.TypeString, value)
+		_node.ImagePath = value
+	}
 	if nodes := cc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -134,13 +201,13 @@ func (cc *CarCreate) createSpec() (*Car, *sqlgraph.CreateSpec) {
 			Columns: []string{car.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lineuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_cars = &nodes[0]
+		_node.line_user_cars = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -160,6 +227,7 @@ func (ccb *CarCreateBulk) Save(ctx context.Context) ([]*Car, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CarMutation)
 				if !ok {

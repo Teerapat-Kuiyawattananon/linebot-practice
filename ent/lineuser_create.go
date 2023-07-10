@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"entdemo/ent/car"
 	"entdemo/ent/creditlater"
+	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
 	"errors"
@@ -94,6 +96,36 @@ func (luc *LineUserCreate) SetNillableCreditlatersID(id *int) *LineUserCreate {
 // SetCreditlaters sets the "creditlaters" edge to the CreditLater entity.
 func (luc *LineUserCreate) SetCreditlaters(c *CreditLater) *LineUserCreate {
 	return luc.SetCreditlatersID(c.ID)
+}
+
+// AddCarIDs adds the "cars" edge to the Car entity by IDs.
+func (luc *LineUserCreate) AddCarIDs(ids ...int) *LineUserCreate {
+	luc.mutation.AddCarIDs(ids...)
+	return luc
+}
+
+// AddCars adds the "cars" edges to the Car entity.
+func (luc *LineUserCreate) AddCars(c ...*Car) *LineUserCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return luc.AddCarIDs(ids...)
+}
+
+// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
+func (luc *LineUserCreate) AddGroupIDs(ids ...int) *LineUserCreate {
+	luc.mutation.AddGroupIDs(ids...)
+	return luc
+}
+
+// AddGroups adds the "groups" edges to the Group entity.
+func (luc *LineUserCreate) AddGroups(g ...*Group) *LineUserCreate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return luc.AddGroupIDs(ids...)
 }
 
 // Mutation returns the LineUserMutation object of the builder.
@@ -227,6 +259,38 @@ func (luc *LineUserCreate) createSpec() (*LineUser, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(creditlater.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := luc.mutation.CarsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lineuser.CarsTable,
+			Columns: []string{lineuser.CarsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(car.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := luc.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   lineuser.GroupsTable,
+			Columns: lineuser.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(group.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

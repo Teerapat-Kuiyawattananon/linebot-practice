@@ -22,8 +22,6 @@ type Tx struct {
 	LineLog *LineLogClient
 	// LineUser is the client for interacting with the LineUser builders.
 	LineUser *LineUserClient
-	// User is the client for interacting with the User builders.
-	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -160,7 +158,6 @@ func (tx *Tx) init() {
 	tx.Group = NewGroupClient(tx.config)
 	tx.LineLog = NewLineLogClient(tx.config)
 	tx.LineUser = NewLineUserClient(tx.config)
-	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

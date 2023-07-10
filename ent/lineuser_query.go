@@ -5,7 +5,9 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
+	"entdemo/ent/car"
 	"entdemo/ent/creditlater"
+	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
 	"entdemo/ent/predicate"
@@ -26,6 +28,8 @@ type LineUserQuery struct {
 	predicates       []predicate.LineUser
 	withLinelogs     *LineLogQuery
 	withCreditlaters *CreditLaterQuery
+	withCars         *CarQuery
+	withGroups       *GroupQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -99,6 +103,50 @@ func (luq *LineUserQuery) QueryCreditlaters() *CreditLaterQuery {
 			sqlgraph.From(lineuser.Table, lineuser.FieldID, selector),
 			sqlgraph.To(creditlater.Table, creditlater.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, lineuser.CreditlatersTable, lineuser.CreditlatersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(luq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCars chains the current query on the "cars" edge.
+func (luq *LineUserQuery) QueryCars() *CarQuery {
+	query := (&CarClient{config: luq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := luq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := luq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lineuser.Table, lineuser.FieldID, selector),
+			sqlgraph.To(car.Table, car.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lineuser.CarsTable, lineuser.CarsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(luq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroups chains the current query on the "groups" edge.
+func (luq *LineUserQuery) QueryGroups() *GroupQuery {
+	query := (&GroupClient{config: luq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := luq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := luq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lineuser.Table, lineuser.FieldID, selector),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, lineuser.GroupsTable, lineuser.GroupsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(luq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,6 +348,8 @@ func (luq *LineUserQuery) Clone() *LineUserQuery {
 		predicates:       append([]predicate.LineUser{}, luq.predicates...),
 		withLinelogs:     luq.withLinelogs.Clone(),
 		withCreditlaters: luq.withCreditlaters.Clone(),
+		withCars:         luq.withCars.Clone(),
+		withGroups:       luq.withGroups.Clone(),
 		// clone intermediate query.
 		sql:  luq.sql.Clone(),
 		path: luq.path,
@@ -325,6 +375,28 @@ func (luq *LineUserQuery) WithCreditlaters(opts ...func(*CreditLaterQuery)) *Lin
 		opt(query)
 	}
 	luq.withCreditlaters = query
+	return luq
+}
+
+// WithCars tells the query-builder to eager-load the nodes that are connected to
+// the "cars" edge. The optional arguments are used to configure the query builder of the edge.
+func (luq *LineUserQuery) WithCars(opts ...func(*CarQuery)) *LineUserQuery {
+	query := (&CarClient{config: luq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	luq.withCars = query
+	return luq
+}
+
+// WithGroups tells the query-builder to eager-load the nodes that are connected to
+// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (luq *LineUserQuery) WithGroups(opts ...func(*GroupQuery)) *LineUserQuery {
+	query := (&GroupClient{config: luq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	luq.withGroups = query
 	return luq
 }
 
@@ -406,9 +478,11 @@ func (luq *LineUserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Li
 	var (
 		nodes       = []*LineUser{}
 		_spec       = luq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			luq.withLinelogs != nil,
 			luq.withCreditlaters != nil,
+			luq.withCars != nil,
+			luq.withGroups != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -439,6 +513,20 @@ func (luq *LineUserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Li
 	if query := luq.withCreditlaters; query != nil {
 		if err := luq.loadCreditlaters(ctx, query, nodes, nil,
 			func(n *LineUser, e *CreditLater) { n.Edges.Creditlaters = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := luq.withCars; query != nil {
+		if err := luq.loadCars(ctx, query, nodes,
+			func(n *LineUser) { n.Edges.Cars = []*Car{} },
+			func(n *LineUser, e *Car) { n.Edges.Cars = append(n.Edges.Cars, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := luq.withGroups; query != nil {
+		if err := luq.loadGroups(ctx, query, nodes,
+			func(n *LineUser) { n.Edges.Groups = []*Group{} },
+			func(n *LineUser, e *Group) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -501,6 +589,98 @@ func (luq *LineUserQuery) loadCreditlaters(ctx context.Context, query *CreditLat
 			return fmt.Errorf(`unexpected referenced foreign-key "line_user_creditlaters" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (luq *LineUserQuery) loadCars(ctx context.Context, query *CarQuery, nodes []*LineUser, init func(*LineUser), assign func(*LineUser, *Car)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*LineUser)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Car(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lineuser.CarsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.line_user_cars
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "line_user_cars" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "line_user_cars" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (luq *LineUserQuery) loadGroups(ctx context.Context, query *GroupQuery, nodes []*LineUser, init func(*LineUser), assign func(*LineUser, *Group)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*LineUser)
+	nids := make(map[int]map[*LineUser]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(lineuser.GroupsTable)
+		s.Join(joinT).On(s.C(group.FieldID), joinT.C(lineuser.GroupsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(lineuser.GroupsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(lineuser.GroupsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*LineUser]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Group](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

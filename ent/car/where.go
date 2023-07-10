@@ -65,6 +65,16 @@ func RegisteredAt(v time.Time) predicate.Car {
 	return predicate.Car(sql.FieldEQ(FieldRegisteredAt, v))
 }
 
+// Price applies equality check predicate on the "price" field. It's identical to PriceEQ.
+func Price(v int) predicate.Car {
+	return predicate.Car(sql.FieldEQ(FieldPrice, v))
+}
+
+// ImagePath applies equality check predicate on the "image_path" field. It's identical to ImagePathEQ.
+func ImagePath(v string) predicate.Car {
+	return predicate.Car(sql.FieldEQ(FieldImagePath, v))
+}
+
 // ModelEQ applies the EQ predicate on the "model" field.
 func ModelEQ(v string) predicate.Car {
 	return predicate.Car(sql.FieldEQ(FieldModel, v))
@@ -170,6 +180,111 @@ func RegisteredAtLTE(v time.Time) predicate.Car {
 	return predicate.Car(sql.FieldLTE(FieldRegisteredAt, v))
 }
 
+// PriceEQ applies the EQ predicate on the "price" field.
+func PriceEQ(v int) predicate.Car {
+	return predicate.Car(sql.FieldEQ(FieldPrice, v))
+}
+
+// PriceNEQ applies the NEQ predicate on the "price" field.
+func PriceNEQ(v int) predicate.Car {
+	return predicate.Car(sql.FieldNEQ(FieldPrice, v))
+}
+
+// PriceIn applies the In predicate on the "price" field.
+func PriceIn(vs ...int) predicate.Car {
+	return predicate.Car(sql.FieldIn(FieldPrice, vs...))
+}
+
+// PriceNotIn applies the NotIn predicate on the "price" field.
+func PriceNotIn(vs ...int) predicate.Car {
+	return predicate.Car(sql.FieldNotIn(FieldPrice, vs...))
+}
+
+// PriceGT applies the GT predicate on the "price" field.
+func PriceGT(v int) predicate.Car {
+	return predicate.Car(sql.FieldGT(FieldPrice, v))
+}
+
+// PriceGTE applies the GTE predicate on the "price" field.
+func PriceGTE(v int) predicate.Car {
+	return predicate.Car(sql.FieldGTE(FieldPrice, v))
+}
+
+// PriceLT applies the LT predicate on the "price" field.
+func PriceLT(v int) predicate.Car {
+	return predicate.Car(sql.FieldLT(FieldPrice, v))
+}
+
+// PriceLTE applies the LTE predicate on the "price" field.
+func PriceLTE(v int) predicate.Car {
+	return predicate.Car(sql.FieldLTE(FieldPrice, v))
+}
+
+// ImagePathEQ applies the EQ predicate on the "image_path" field.
+func ImagePathEQ(v string) predicate.Car {
+	return predicate.Car(sql.FieldEQ(FieldImagePath, v))
+}
+
+// ImagePathNEQ applies the NEQ predicate on the "image_path" field.
+func ImagePathNEQ(v string) predicate.Car {
+	return predicate.Car(sql.FieldNEQ(FieldImagePath, v))
+}
+
+// ImagePathIn applies the In predicate on the "image_path" field.
+func ImagePathIn(vs ...string) predicate.Car {
+	return predicate.Car(sql.FieldIn(FieldImagePath, vs...))
+}
+
+// ImagePathNotIn applies the NotIn predicate on the "image_path" field.
+func ImagePathNotIn(vs ...string) predicate.Car {
+	return predicate.Car(sql.FieldNotIn(FieldImagePath, vs...))
+}
+
+// ImagePathGT applies the GT predicate on the "image_path" field.
+func ImagePathGT(v string) predicate.Car {
+	return predicate.Car(sql.FieldGT(FieldImagePath, v))
+}
+
+// ImagePathGTE applies the GTE predicate on the "image_path" field.
+func ImagePathGTE(v string) predicate.Car {
+	return predicate.Car(sql.FieldGTE(FieldImagePath, v))
+}
+
+// ImagePathLT applies the LT predicate on the "image_path" field.
+func ImagePathLT(v string) predicate.Car {
+	return predicate.Car(sql.FieldLT(FieldImagePath, v))
+}
+
+// ImagePathLTE applies the LTE predicate on the "image_path" field.
+func ImagePathLTE(v string) predicate.Car {
+	return predicate.Car(sql.FieldLTE(FieldImagePath, v))
+}
+
+// ImagePathContains applies the Contains predicate on the "image_path" field.
+func ImagePathContains(v string) predicate.Car {
+	return predicate.Car(sql.FieldContains(FieldImagePath, v))
+}
+
+// ImagePathHasPrefix applies the HasPrefix predicate on the "image_path" field.
+func ImagePathHasPrefix(v string) predicate.Car {
+	return predicate.Car(sql.FieldHasPrefix(FieldImagePath, v))
+}
+
+// ImagePathHasSuffix applies the HasSuffix predicate on the "image_path" field.
+func ImagePathHasSuffix(v string) predicate.Car {
+	return predicate.Car(sql.FieldHasSuffix(FieldImagePath, v))
+}
+
+// ImagePathEqualFold applies the EqualFold predicate on the "image_path" field.
+func ImagePathEqualFold(v string) predicate.Car {
+	return predicate.Car(sql.FieldEqualFold(FieldImagePath, v))
+}
+
+// ImagePathContainsFold applies the ContainsFold predicate on the "image_path" field.
+func ImagePathContainsFold(v string) predicate.Car {
+	return predicate.Car(sql.FieldContainsFold(FieldImagePath, v))
+}
+
 // HasOwner applies the HasEdge predicate on the "owner" edge.
 func HasOwner() predicate.Car {
 	return predicate.Car(func(s *sql.Selector) {
@@ -182,7 +297,7 @@ func HasOwner() predicate.Car {
 }
 
 // HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.User) predicate.Car {
+func HasOwnerWith(preds ...predicate.LineUser) predicate.Car {
 	return predicate.Car(func(s *sql.Selector) {
 		step := newOwnerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

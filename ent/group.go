@@ -26,20 +26,20 @@ type Group struct {
 
 // GroupEdges holds the relations/edges for other nodes in the graph.
 type GroupEdges struct {
-	// Users holds the value of the users edge.
-	Users []*User `json:"users,omitempty"`
+	// Lineusers holds the value of the lineusers edge.
+	Lineusers []*LineUser `json:"lineusers,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// UsersOrErr returns the Users value or an error if the edge
+// LineusersOrErr returns the Lineusers value or an error if the edge
 // was not loaded in eager-loading.
-func (e GroupEdges) UsersOrErr() ([]*User, error) {
+func (e GroupEdges) LineusersOrErr() ([]*LineUser, error) {
 	if e.loadedTypes[0] {
-		return e.Users, nil
+		return e.Lineusers, nil
 	}
-	return nil, &NotLoadedError{edge: "users"}
+	return nil, &NotLoadedError{edge: "lineusers"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -91,9 +91,9 @@ func (gr *Group) Value(name string) (ent.Value, error) {
 	return gr.selectValues.Get(name)
 }
 
-// QueryUsers queries the "users" edge of the Group entity.
-func (gr *Group) QueryUsers() *UserQuery {
-	return NewGroupClient(gr.config).QueryUsers(gr)
+// QueryLineusers queries the "lineusers" edge of the Group entity.
+func (gr *Group) QueryLineusers() *LineUserQuery {
+	return NewGroupClient(gr.config).QueryLineusers(gr)
 }
 
 // Update returns a builder for updating this Group.

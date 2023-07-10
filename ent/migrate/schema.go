@@ -13,7 +13,9 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "model", Type: field.TypeString},
 		{Name: "registered_at", Type: field.TypeTime},
-		{Name: "user_cars", Type: field.TypeInt, Nullable: true},
+		{Name: "price", Type: field.TypeInt, Default: 0},
+		{Name: "image_path", Type: field.TypeString, Default: "https://digitalfinger.id/wp-content/uploads/2019/12/no-image-available-icon-6.png"},
+		{Name: "line_user_cars", Type: field.TypeInt, Nullable: true},
 	}
 	// CarsTable holds the schema information for the "cars" table.
 	CarsTable = &schema.Table{
@@ -22,9 +24,9 @@ var (
 		PrimaryKey: []*schema.Column{CarsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "cars_users_cars",
-				Columns:    []*schema.Column{CarsColumns[3]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
+				Symbol:     "cars_line_users_cars",
+				Columns:    []*schema.Column{CarsColumns[5]},
+				RefColumns: []*schema.Column{LineUsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -33,7 +35,7 @@ var (
 	CreditLatersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "transaction_ref", Type: field.TypeString},
-		{Name: "date", Type: field.TypeString, Default: "09/07/2023 10:23"},
+		{Name: "date", Type: field.TypeString, Default: "10/07/2023 23:08"},
 		{Name: "branch", Type: field.TypeString, Default: "Center"},
 		{Name: "amount", Type: field.TypeInt, Default: 0},
 		{Name: "installment", Type: field.TypeInt, Default: 0},
@@ -101,39 +103,27 @@ var (
 		Columns:    LineUsersColumns,
 		PrimaryKey: []*schema.Column{LineUsersColumns[0]},
 	}
-	// UsersColumns holds the columns for the "users" table.
-	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "age", Type: field.TypeInt},
-		{Name: "name", Type: field.TypeString, Default: "unknown"},
-	}
-	// UsersTable holds the schema information for the "users" table.
-	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
-	}
-	// GroupUsersColumns holds the columns for the "group_users" table.
-	GroupUsersColumns = []*schema.Column{
+	// GroupLineusersColumns holds the columns for the "group_lineusers" table.
+	GroupLineusersColumns = []*schema.Column{
 		{Name: "group_id", Type: field.TypeInt},
-		{Name: "user_id", Type: field.TypeInt},
+		{Name: "line_user_id", Type: field.TypeInt},
 	}
-	// GroupUsersTable holds the schema information for the "group_users" table.
-	GroupUsersTable = &schema.Table{
-		Name:       "group_users",
-		Columns:    GroupUsersColumns,
-		PrimaryKey: []*schema.Column{GroupUsersColumns[0], GroupUsersColumns[1]},
+	// GroupLineusersTable holds the schema information for the "group_lineusers" table.
+	GroupLineusersTable = &schema.Table{
+		Name:       "group_lineusers",
+		Columns:    GroupLineusersColumns,
+		PrimaryKey: []*schema.Column{GroupLineusersColumns[0], GroupLineusersColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "group_users_group_id",
-				Columns:    []*schema.Column{GroupUsersColumns[0]},
+				Symbol:     "group_lineusers_group_id",
+				Columns:    []*schema.Column{GroupLineusersColumns[0]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "group_users_user_id",
-				Columns:    []*schema.Column{GroupUsersColumns[1]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
+				Symbol:     "group_lineusers_line_user_id",
+				Columns:    []*schema.Column{GroupLineusersColumns[1]},
+				RefColumns: []*schema.Column{LineUsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -145,15 +135,14 @@ var (
 		GroupsTable,
 		LineLogsTable,
 		LineUsersTable,
-		UsersTable,
-		GroupUsersTable,
+		GroupLineusersTable,
 	}
 )
 
 func init() {
-	CarsTable.ForeignKeys[0].RefTable = UsersTable
+	CarsTable.ForeignKeys[0].RefTable = LineUsersTable
 	CreditLatersTable.ForeignKeys[0].RefTable = LineUsersTable
 	LineLogsTable.ForeignKeys[0].RefTable = LineUsersTable
-	GroupUsersTable.ForeignKeys[0].RefTable = GroupsTable
-	GroupUsersTable.ForeignKeys[1].RefTable = UsersTable
+	GroupLineusersTable.ForeignKeys[0].RefTable = GroupsTable
+	GroupLineusersTable.ForeignKeys[1].RefTable = LineUsersTable
 }
