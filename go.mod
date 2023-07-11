@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.3
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9

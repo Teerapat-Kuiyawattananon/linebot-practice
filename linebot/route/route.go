@@ -3,6 +3,7 @@ package route
 import (
 	"context"
 	"entdemo/ent"
+	"entdemo/ent/car"
 	_ "entdemo/ent/car"
 	_ "entdemo/ent/creditlater"
 	"entdemo/ent/linelog"
@@ -201,6 +202,77 @@ func HandlerReply(c *gin.Context) {
 				} else if message.Text == "เพิ่มรถ" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
 
+
+				} else if match, _ := regexp.MatchString("เพิ่มรถ: [ก-๙a-zA-Z| ]+", message.Text) ; match {
+					carName := message.Text[23:]
+					// Get car
+					car, err := client.Car.
+									Query().
+									Where(car.Model(carName)).
+									Only(ctx)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+
+					// Add car to user
+					err = lineUser.Update().
+								AddCars(car).
+								Exec(ctx)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เพิ่มรถ " + car.Model + " ให้ " + lineUser.DisplyaName + " สำเร็จ")).Do()
+					
+				} else if match, _ := regexp.MatchString("ลบรถ: [ก-๙a-zA-Z| ]+", message.Text) ; match {
+					carName := message.Text[14:]
+
+					car, err := client.Car.Query().
+									Where(car.Model(carName)).
+									Only(ctx)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+					
+					// remove car
+					err = lineUser.Update().
+								RemoveCars(car).
+								Exec(ctx)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+					if lineUser.QueryCars().CountX(ctx) == 0 {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("รถถูกลบทั้งหมดแล้ว")).Do()
+					}
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetMyCars(client, ctx, lineUser)).Do()
+					log.Println(strings.Index(message.Text, "F"))
+				} else if message.Text == "รถของฉัน" {
+					if lineUser.QueryCars().CountX(ctx) == 0 {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("คุณยังไม่มีรถ")).Do()
+						return
+					}
+					// lineUser.Update().
+					// 	AddCarIDs(1).
+					// 	ExecX(ctx)
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetMyCars(client, ctx, lineUser)).Do()
+
+				} else if match, _ := regexp.MatchString("ดูข้อมูลรถ: [ก-๙a-zA-Z]+", message.Text) ; match {
+					carName := message.Text[32:]
+					car, err := client.Car.
+									Query().
+									Where(car.Model(carName)).
+									Only(ctx)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+					msg := fmt.Sprintf("Model: %s\nPrice: %d บาท\nDate: %s", car.Model, car.Price, car.RegisteredAt)
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
 
 				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text) ; match {
 					msgLine := strings.Split(message.Text, "\n")

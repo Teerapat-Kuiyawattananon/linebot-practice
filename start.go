@@ -67,7 +67,7 @@ func CreateCars(client *ent.Client, ctx context.Context) error {
 	if err := client.Car.
 				Create().
 				SetModel("Toyota yaris").
-				SetPrice(1264000).
+				SetPrice(549000).
 				SetImagePath(`https://www.hongtonggas.com/wp-content/uploads/2022/08/%E0%B8%A3%E0%B8%B5%E0%B8%A7%E0%B8%B4%E0%B8%A7-Toyota-Yaris-Ativ-1.2-%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B9%81%E0%B8%81%E0%B9%8A%E0%B8%AA-Prins-%E0%B8%AB%E0%B8%87%E0%B8%A9%E0%B9%8C%E0%B8%97%E0%B8%AD%E0%B8%87%E0%B9%81%E0%B8%81%E0%B9%8A%E0%B8%AA.jpg`).
 				Exec(ctx) ; err != nil {
 					return err
