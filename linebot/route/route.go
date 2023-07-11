@@ -199,7 +199,7 @@ func HandlerReply(c *gin.Context) {
 					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do()
 						
 				} else if message.Text == "เพิ่มรถ" {
-					
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
 
 
 				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text) ; match {

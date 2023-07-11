@@ -1204,3 +1204,92 @@ func GetSinTrustChangeAmount(lineuser *ent.LineUser) *linebot.FlexMessage {
 	return flexMessage
 	
 }
+
+func GetListCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
+	jsonStr := `{
+		"type": "carousel",
+		"contents": [%s]
+	  }`
+	
+	cars, err := client.Car.
+					Query().
+					All(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jsonCars := `,{
+		"type": "bubble",
+		"hero": {
+		  "type": "image",
+		  "url": "%s",
+		  "size": "full",
+		  "aspectRatio": "20:13",
+		  "aspectMode": "cover"
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "%s",
+			  "weight": "bold",
+			  "size": "xl",
+			  "wrap": true,
+			  "contents": []
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "%d บาท",
+				  "weight": "bold",
+				  "size": "xl",
+				  "flex": 0,
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "Add Car",
+				"text": "AddCar id: %d"
+			  },
+			  "color": "#6BB583FF",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`
+	jsonTmp := ""
+	for i, car := range cars {
+		if i == 0 {
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, car.Price, car.ID)
+		} else {
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, car.Price, car.ID)
+		}
+		
+	}
+
+	jsonStr = fmt.Sprintf(jsonStr, jsonTmp)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Fatal(err)
+	}
+	flexMessage := linebot.NewFlexMessage("Cars", flexContainer)
+
+	return flexMessage
+}
