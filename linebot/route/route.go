@@ -119,7 +119,7 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลงทะเบียนสำเร็จ..."),
 						linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ...")).Do()
 						newUser = newUser.Update().SetActive(true).SaveX(ctx)
-						if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-89ab940234b7c94d2b20fbff9af45e50").Do(); err != nil {
+						if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-47e96433196357039bdea13c0ac04682").Do(); err != nil {
 							log.Fatal(err)
 						}
 						return
@@ -131,7 +131,7 @@ func HandlerReply(c *gin.Context) {
 						linebot.NewTextMessage("คุณได้ลงทะเบียนไปแล้ว"),
 						linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ...")).Do()
 					lineUser = lineUser.Update().SetActive(true).SaveX(ctx)
-					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-89ab940234b7c94d2b20fbff9af45e50").Do(); err != nil {
+					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-47e96433196357039bdea13c0ac04682").Do(); err != nil {
 						log.Fatal(err)
 					}
 				} else if message.Text == "logout" {
@@ -140,7 +140,7 @@ func HandlerReply(c *gin.Context) {
 						return
 					}
 					lineUser = lineUser.Update().SetActive(false).SaveX(ctx) 
-					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do(); err != nil {
+					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-ad61634174b7900b7636c6f035f265e4").Do(); err != nil {
 						log.Fatal(err)
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ออกจากระบบแล้ว...")).Do()
@@ -197,7 +197,7 @@ func HandlerReply(c *gin.Context) {
 					}
 
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลบข้อมูลของคูณสำเร็จ")).Do()
-					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do()
+					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-ad61634174b7900b7636c6f035f265e4").Do()
 						
 				} else if message.Text == "เพิ่มรถ" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
