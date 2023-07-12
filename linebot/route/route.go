@@ -86,7 +86,7 @@ func HandlerReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetInfoTeaTimeFlexMessage()).Do()
 				} else if message.Text == "MENU" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetMenuTeaTimeCarousel()).Do()
-				} else if message.Text == "สมัครสินเชื่อ" {
+				} else if message.Text == "สินเชื่อของฉัน" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
@@ -199,9 +199,12 @@ func HandlerReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลบข้อมูลของคูณสำเร็จ")).Do()
 					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-ad61634174b7900b7636c6f035f265e4").Do()
 						
-				} else if message.Text == "เพิ่มรถ" {
-					bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
-
+				} else if message.Text == "รถ" {
+					if (client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) !=0 && lineUser.Active) {
+						bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
+						return
+					}
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetInfoCars(client, ctx)).Do()
 
 				} else if match, _ := regexp.MatchString("เพิ่มรถ: [ก-๙a-zA-Z| ]+", message.Text) ; match {
 					carName := message.Text[23:]

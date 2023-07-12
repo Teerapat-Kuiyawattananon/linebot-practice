@@ -1258,29 +1258,39 @@ func GetListCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 		  ]
 		},
 		"footer": {
-		  "type": "box",
-		  "layout": "vertical",
-		  "spacing": "sm",
-		  "contents": [
-			{
-			  "type": "button",
-			  "action": {
-				"type": "message",
-				"label": "Add Car",
-				"text": "เพิ่มรถ: %s"
+			"type": "box",
+			"layout": "horizontal",
+			"spacing": "sm",
+			"contents": [
+			  {
+				  "type": "button",
+				  "action": {
+					"type": "message",
+					"label": "ดูข้อมูลรถ",
+					"text": "ดูข้อมูลรถ: %s"
+				  },
+				  "color": "#AAAAAA",
+				  "style": "primary"
 			  },
-			  "color": "#6BB583FF",
-			  "style": "primary"
-			}
-		  ]
-		}
+			  {
+				  "type": "button",
+				  "action": {
+					"type": "message",
+					"label": "Add Car",
+					"text": "เพิ่มรถ: %s"
+				  },
+				  "color": "#6BB583FF",
+				  "style": "primary"
+			  }
+			]
+		  }
 	  }`
 	jsonTmp := ""
 	for i, car := range cars {
 		if i == 0 {
-			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
 		} else {
-			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
 		}
 		
 	}
@@ -1384,6 +1394,95 @@ func GetMyCars(client *ent.Client, ctx context.Context, lineUser *ent.LineUser) 
 			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
 		} else {
 			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
+		}
+		
+	}
+
+	jsonStr = fmt.Sprintf(jsonStr, jsonTmp)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Fatal(err)
+	}
+	flexMessage := linebot.NewFlexMessage("Cars", flexContainer)
+
+	return flexMessage
+}
+
+func GetInfoCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
+	jsonStr := `{
+		"type": "carousel",
+		"contents": [%s]
+	  }`
+	
+	cars, err := client.Car.
+					Query().
+					All(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jsonCars := `,{
+		"type": "bubble",
+		"hero": {
+		  "type": "image",
+		  "url": "%s",
+		  "size": "full",
+		  "aspectRatio": "20:13",
+		  "aspectMode": "cover"
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "%s",
+			  "weight": "bold",
+			  "size": "xl",
+			  "wrap": true,
+			  "contents": []
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "%s บาท",
+				  "weight": "bold",
+				  "size": "xl",
+				  "flex": 0,
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูข้อมูฃ",
+				"text": "ดูข้อมูลรถ: %s"
+			  },
+			  "color": "#6BB583FF",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`
+	jsonTmp := ""
+	for i, car := range cars {
+		if i == 0 {
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
+		} else {
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
 		}
 		
 	}
