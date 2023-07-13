@@ -3,7 +3,7 @@ This is a Linebot for practice that learning how to use Line Messaging API with 
 
 
 ## How to run
-To run this Linebot project locally, please follow these steps:
+To run this Linebot project:
 1. Clone the repository:
 ```
 git clone https://github.com/Teerapat-Kuiyawattananon/linebot-practice.git
@@ -14,6 +14,13 @@ git clone https://github.com/Teerapat-Kuiyawattananon/linebot-practice.git
 ```
 cp .env.example .env
 ```
+## Configuration [optional]
+you can change this to your line bot config in `.env` file
+```
+LINE_CHANNEL_SECRET=your_line_channel_secret
+LINE_CHANNEL_TOKEN=your_line_channel_token
+```
+
 4. Run Docker-compose:
 ```
 docker-compose up -d
