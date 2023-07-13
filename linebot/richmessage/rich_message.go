@@ -1472,7 +1472,7 @@ func GetInfoCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 			  "action": {
 				"type": "message",
 				"label": "ดูข้อมูฃ",
-				"text": "ดูข้อมูลรถ: %s"
+				"text": "ดูข้อมูลรถ: %s\nID: %d"
 			  },
 			  "color": "#6BB583FF",
 			  "style": "primary"
@@ -1483,9 +1483,9 @@ func GetInfoCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 	jsonTmp := ""
 	for i, car := range cars {
 		if i == 0 {
-			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID)
 		} else {
-			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID)
 		}
 		
 	}
