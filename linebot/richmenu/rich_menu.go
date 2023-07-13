@@ -44,6 +44,11 @@ func main() {
 	// teatime rich menu 1 (Register) [richmenu-5c1705a09661a32a9dfe0072b4b6a3ce]
 	// teatime rich menu 2 (login) [richmenu-ccda289b84596e0be0d5d248ae5d4a86] -----> [richmenu-89ab940234b7c94d2b20fbff9af45e50]
 	// teatime rich menu 3 (edit) [richmenu-3db64483ee4b980b8823c93250b7c934]
+
+	// version 3
+	// teatime rich menu 1 (Register) 	[richmenu-7ef841f8e1c6f9aa203cde486d878c03]
+	// teatime rich menu 2 (Menu) 		[richmenu-47e96433196357039bdea13c0ac04682]
+	// teatime rich menu 3 (Edit)		[richmenu-2bf91e94da39a7b08eb97f18433f3f2d]
 	var (
 		mode = flag.String("mode", "upload", "mode of richmenu helper [list|create|link|unlink|bulklink|bulkunlink|get|delete|upload|download|alias_create|alias_get|alias_update|alias_delete|alias_list]")
 		aid      = flag.String("aid", "", "alias id")

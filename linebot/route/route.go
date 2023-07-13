@@ -3,6 +3,7 @@ package route
 import (
 	"context"
 	"entdemo/ent"
+	"entdemo/ent/car"
 	_ "entdemo/ent/car"
 	_ "entdemo/ent/creditlater"
 	"entdemo/ent/linelog"
@@ -17,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -28,7 +30,7 @@ var client *ent.Client
 var err error
 
 func init() {
-	if err := godotenv.Load(".env") ; err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal(err)
 	}
 	client, err = ent.Open("postgres", os.Getenv("PSQL_DB_CONNECT"))
@@ -69,13 +71,13 @@ func HandlerReply(c *gin.Context) {
 			case *linebot.TextMessage:
 				CreateLineLog(ctx, client, event.Source.UserID, "send msg", message.Text)
 				var lineUser *ent.LineUser
-				if (client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) != 0){
+				if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) != 0 {
 					lineUser = client.LineUser.
 						Query().
 						Where(lineuser.UserId(event.Source.UserID)).
 						OnlyX(ctx)
 				}
-				// switch text := message.Text 
+				// switch text := message.Text
 				if message.Text == "สินเชื่อ" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetSinTrustInfoFlexMessage()).Do()
 				} else if message.Text == "Me" {
@@ -85,7 +87,7 @@ func HandlerReply(c *gin.Context) {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetInfoTeaTimeFlexMessage()).Do()
 				} else if message.Text == "MENU" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetMenuTeaTimeCarousel()).Do()
-				} else if message.Text == "สมัครสินเชื่อ" {
+				} else if message.Text == "สินเชื่อของฉัน" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
@@ -116,31 +118,33 @@ func HandlerReply(c *gin.Context) {
 					if client.LineUser.Query().Where(lineuser.UserId(profile.UserID)).FirstIDX(ctx) == 0 {
 						newUser := CreateLineUser(ctx, client, profile)
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลงทะเบียนสำเร็จ..."),
-						linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ...")).Do()
+							linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ...")).Do()
 						newUser = newUser.Update().SetActive(true).SaveX(ctx)
-						if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-89ab940234b7c94d2b20fbff9af45e50").Do(); err != nil {
-							log.Fatal(err)
+						if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-47e96433196357039bdea13c0ac04682").Do(); err != nil {
+							bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
 						}
 						return
 					}
 					var newTextMessgae []linebot.Message
 					newTextMessgae = append(newTextMessgae, linebot.NewTextMessage("คุณได้ลงทะเบียนไปแล้ว"))
 					newTextMessgae = append(newTextMessgae, linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ..."))
-					bot.ReplyMessage(event.ReplyToken, 
+					bot.ReplyMessage(event.ReplyToken,
 						linebot.NewTextMessage("คุณได้ลงทะเบียนไปแล้ว"),
 						linebot.NewTextMessage("เข้าสู่ระบบสำเร็จ...")).Do()
 					lineUser = lineUser.Update().SetActive(true).SaveX(ctx)
-					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-89ab940234b7c94d2b20fbff9af45e50").Do(); err != nil {
-						log.Fatal(err)
+					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-47e96433196357039bdea13c0ac04682").Do(); err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
 					}
 				} else if message.Text == "logout" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
-					lineUser = lineUser.Update().SetActive(false).SaveX(ctx) 
-					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do(); err != nil {
-						log.Fatal(err)
+					lineUser = lineUser.Update().SetActive(false).SaveX(ctx)
+					if _, err := bot.LinkUserRichMenu(event.Source.UserID, "richmenu-ad61634174b7900b7636c6f035f265e4").Do(); err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ออกจากระบบแล้ว...")).Do()
 				} else if message.Text == "แก้ไขสาขา" {
@@ -161,30 +165,30 @@ func HandlerReply(c *gin.Context) {
 						newBeanch := message.Text[41:]
 						credit_later := lineUser.QueryCreditlaters().OnlyX(ctx)
 						credit_later = credit_later.Update().SetBranch(newBeanch).SaveX(ctx)
-						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("แก้ไขสาขาของคุณเป็น " + newBeanch + " สำเร็จ")).Do()
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("แก้ไขสาขาของคุณเป็น "+newBeanch+" สำเร็จ")).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				} else if message.Text == "แก้ไขจำนวนเงิน"{
+				} else if message.Text == "แก้ไขจำนวนเงิน" {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
-					if lineUser.Active{
+					if lineUser.Active {
 						bot.ReplyMessage(event.ReplyToken, richmessage.GetSinTrustChangeAmount(lineUser)).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				}else if match, _ := regexp.MatchString("แก้ไขจำนวนเงินเป็น: [1-9][0-9]+[.]?[0-9]+", message.Text); match == true {
+				} else if match, _ := regexp.MatchString("แก้ไขจำนวนเงินเป็น: [1-9][0-9]+[.]?[0-9]+", message.Text); match == true {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
-					if lineUser.Active{
+					if lineUser.Active {
 						log.Println(strings.Index(message.Text, " "))
 						newAmount := message.Text[56:]
 						newAmountInt, _ := strconv.Atoi(newAmount)
 						credit_later := lineUser.QueryCreditlaters().OnlyX(ctx)
 						credit_later = credit_later.Update().SetAmount(newAmountInt).SaveX(ctx)
-						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("แก้ไขจำนวนเงินของคุณเป็น " + newAmount + " สำเร็จ")).Do()
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("แก้ไขจำนวนเงินของคุณเป็น "+newAmount+" สำเร็จ")).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 				} else if message.Text == "Delete line" {
@@ -192,21 +196,130 @@ func HandlerReply(c *gin.Context) {
 					// delete LineUser
 					err := client.LineUser.DeleteOne(lineUser).Exec(ctx)
 					if err != nil {
-						log.Fatal(err)
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
 					}
 
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ลบข้อมูลของคูณสำเร็จ")).Do()
-					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-5c1705a09661a32a9dfe0072b4b6a3ce").Do()
-						
-				} else if message.Text == "เพิ่มรถ" {
+					bot.LinkUserRichMenu(event.Source.UserID, "richmenu-ad61634174b7900b7636c6f035f265e4").Do()
+
+				} else if message.Text == "รถ" {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) != 0 && lineUser.Active {
+						bot.ReplyMessage(event.ReplyToken, richmessage.GetListCars(client, ctx)).Do()
+						return
+					}
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetInfoCars(client, ctx)).Do()
+
+				} else if match, _ := regexp.MatchString("เพิ่มรถ: [ก-๙a-zA-Z| ]+", message.Text); match {
+					carName := message.Text[23:]
+					// Get car
+					car, err := client.Car.
+						Query().
+						Where(car.Not(
+							car.HasOwner(),
+						), car.Model(carName)).
+						Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					newCar, err := client.Car.
+						Create().
+						SetModel(car.Model).
+						SetPrice(car.Price).
+						SetImagePath(car.ImagePath).
+						Save(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					// Add car to user
+					err = lineUser.Update().
+						AddCars(newCar).
+						Exec(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เพิ่มรถ "+car.Model+" ให้ "+lineUser.DisplyaName+" สำเร็จ")).Do()
+
+				} else if match, _ := regexp.MatchString("ลบรถ: [ก-๙a-zA-Z| ]+\nID: ", message.Text); match {
+					lineStr := strings.Split(message.Text, "\n")
+					carIDStr := lineStr[1][4:]
 					
+					carID, _ := strconv.Atoi(carIDStr)
 
+					car, err := lineUser.QueryCars().
+									Where(car.ID(carID)).
+									Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+					
+					// remove car
+					err = lineUser.Update().
+								RemoveCars(car).
+								Exec(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
 
-				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text) ; match {
+					var newMessage []linebot.SendingMessage
+					newMessage = append(newMessage, linebot.NewTextMessage("ลบรถ: " + car.Model + " ออกจาก " + lineUser.DisplyaName + " สำเร็จ"))
+				
+					// delete car after remove from user
+					err = client.Car.
+							DeleteOne(car).
+							Exec(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+					
+					if lineUser.QueryCars().CountX(ctx) == 0 {
+						newMessage = append(newMessage, linebot.NewTextMessage("รถถูกลบทั้งหมดแล้ว"))
+						bot.ReplyMessage(event.ReplyToken, newMessage...).Do()
+						return
+					}
+					newMessage = append(newMessage, richmessage.GetMyCars(client, ctx, lineUser))
+					bot.ReplyMessage(event.ReplyToken, newMessage...).Do()
+					// bot.ReplyMessage(event.ReplyToken, richmessage.GetMyCars(client, ctx, lineUser)).Do()
+				} else if message.Text == "รถของฉัน" {
+					if lineUser.QueryCars().CountX(ctx) == 0 {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("คุณยังไม่มีรถ")).Do()
+						return
+					}
+					// lineUser.Update().
+					// 	AddCarIDs(1).
+					// 	ExecX(ctx)
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetMyCars(client, ctx, lineUser)).Do()
+
+				} else if match, _ := regexp.MatchString("ดูข้อมูลรถ: [a-zA-Z| ]+\nID: [1-9]+[0-9]*", message.Text); match {
+					lineStr := strings.Split(message.Text, "\n")
+					// carName := lineStr[0][32:]
+					carIDStr := lineStr[1][4:]
+					carID, _ := strconv.Atoi(carIDStr)
+
+					car, err := client.Car.Query().
+						Where(car.ID(carID)).
+						Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+					msg := fmt.Sprintf("CarID: %d\nModel: %s\nPrice: %s บาท\nDate: %s", car.ID, car.Model, humanize.Comma(int64(car.Price)), car.RegisteredAt.Format("02/01/2006"))
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+
+				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text); match {
 					msgLine := strings.Split(message.Text, "\n")
 					logID, _ := strconv.Atoi(msgLine[0][30:])
 					logAction := msgLine[1][8:]
-					
+
 					line_log, err := client.LineLog.
 						Query().
 						Where(linelog.ID(logID)).
@@ -215,13 +328,13 @@ func HandlerReply(c *gin.Context) {
 						SetAction(logAction).
 						Save(ctx)
 					if err != nil {
-						log.Fatal(err)
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
 					}
 
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(fmt.Sprintf("แก้ไข Action's Log ที่ %d เป็น %s เรียบร้อย", line_log.ID, line_log.Action))).Do()
-				}else {
+				} else {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดข้อมูล" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
-														linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
+						linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
 					// bot.ReplyMessage(event.ReplyToken, richmessage.GetTest()).Do()
 				}
 
@@ -278,14 +391,14 @@ func HandlerReply(c *gin.Context) {
 						SetDate(dateTimeFormat).
 						SaveX(ctx)
 
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เปลี่ยนวันที่เป็น "+credit_later.Date + " น.")).Do()
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เปลี่ยนวันที่เป็น "+credit_later.Date+" น.")).Do()
 					return
 				}
 				bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-			} 
+			}
 		} else if event.Type == linebot.EventTypeFollow {
 			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดข้อมูล" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
-														linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
+				linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
 		}
 	}
 }
