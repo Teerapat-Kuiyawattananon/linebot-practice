@@ -3,6 +3,7 @@ package richmessage
 import (
 	"context"
 	"entdemo/ent"
+	"entdemo/ent/car"
 	"fmt"
 	"log"
 
@@ -1214,6 +1215,9 @@ func GetListCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 	
 	cars, err := client.Car.
 					Query().
+					Where(car.Not(
+						car.HasOwner(),
+					),).
 					All(ctx)
 	if err != nil {
 		log.Fatal(err)
@@ -1267,7 +1271,7 @@ func GetListCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 				  "action": {
 					"type": "message",
 					"label": "ดูข้อมูลรถ",
-					"text": "ดูข้อมูลรถ: %s"
+					"text": "ดูข้อมูลรถ: %s\nID: %d"
 				  },
 				  "color": "#AAAAAA",
 				  "style": "primary"
@@ -1288,9 +1292,9 @@ func GetListCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 	jsonTmp := ""
 	for i, car := range cars {
 		if i == 0 {
-			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID, car.Model)
 		} else {
-			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID, car.Model)
 		}
 		
 	}
@@ -1370,7 +1374,7 @@ func GetMyCars(client *ent.Client, ctx context.Context, lineUser *ent.LineUser) 
 				"action": {
 				  "type": "message",
 				  "label": "ดูข้อมูลรถ",
-				  "text": "ดูข้อมูลรถ: %s"
+				  "text": "ดูข้อมูลรถ: %s\nID: %d"
 				},
 				"color": "#6BB583FF",
 				"style": "primary"
@@ -1380,7 +1384,7 @@ func GetMyCars(client *ent.Client, ctx context.Context, lineUser *ent.LineUser) 
 				"action": {
 				  "type": "message",
 				  "label": "ลบ",
-				  "text": "ลบรถ: %s"
+				  "text": "ลบรถ: %s\nID: %d"
 				},
 				"color": "#F77575FF",
 				"style": "primary"
@@ -1391,9 +1395,9 @@ func GetMyCars(client *ent.Client, ctx context.Context, lineUser *ent.LineUser) 
 	jsonTmp := ""
 	for i, car := range cars {
 		if i == 0 {
-			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars[1:], car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID, car.Model, car.ID)
 		} else {
-			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.Model)
+			jsonTmp += fmt.Sprintf(jsonCars, car.ImagePath, car.Model, humanize.Comma(int64(car.Price)), car.Model, car.ID, car.Model, car.ID)
 		}
 		
 	}
