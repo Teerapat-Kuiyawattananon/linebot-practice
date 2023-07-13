@@ -627,7 +627,7 @@ func GetSinTrustFlexMessage(lineuser *ent.LineUser) *linebot.FlexMessage {
 					},
 					{
 					  "type": "text",
-					  "text": "฿ %d",
+					  "text": "฿ %s",
 					  "size": "sm",
 					  "color": "#6BB977FF",
 					  "contents": []
@@ -678,7 +678,7 @@ func GetSinTrustFlexMessage(lineuser *ent.LineUser) *linebot.FlexMessage {
 				}
 			  ]
 			}
-		  }`, "XXXX-XXX-X0040", creditlater.TransactionRef, creditlater.Date + " น.", creditlater.Branch , creditlater.Amount, creditlater.Installment, creditlater.Detail)))
+		  }`, "XXXX-XXX-X0040", creditlater.TransactionRef, creditlater.Date + " น.", creditlater.Branch , humanize.Comma(int64(creditlater.Amount)), creditlater.Installment, creditlater.Detail)))
 	if err != nil {
 		log.Println(err)
 	}

@@ -88,7 +88,7 @@ func HandlerReply(c *gin.Context) {
 				} else if message.Text == "MENU" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetMenuTeaTimeCarousel()).Do()
 				} else if message.Text == "สินเชื่อของฉัน" {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -97,13 +97,13 @@ func HandlerReply(c *gin.Context) {
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 				} else if message.Text == "Logs" {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetLineLogs(lineUser)).Do()
 				} else if message.Text == "แก้ไขวันที่" {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -148,7 +148,7 @@ func HandlerReply(c *gin.Context) {
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ออกจากระบบแล้ว...")).Do()
 				} else if message.Text == "แก้ไขสาขา" {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -157,7 +157,7 @@ func HandlerReply(c *gin.Context) {
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 				} else if match, _ := regexp.MatchString("แก้ไขสาขาเป็น: [ก-๙a-zA-Z]+", message.Text); match == true {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -169,7 +169,7 @@ func HandlerReply(c *gin.Context) {
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 				} else if message.Text == "แก้ไขจำนวนเงิน" {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -178,7 +178,7 @@ func HandlerReply(c *gin.Context) {
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 				} else if match, _ := regexp.MatchString("แก้ไขจำนวนเงินเป็น: [1-9][0-9]+[.]?[0-9]+", message.Text); match == true {
-					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 {
+					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
 					}
@@ -333,8 +333,8 @@ func HandlerReply(c *gin.Context) {
 
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(fmt.Sprintf("แก้ไข Action's Log ที่ %d เป็น %s เรียบร้อย", line_log.ID, line_log.Action))).Do()
 				} else {
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดข้อมูล" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
-						linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดสินเชื่อ" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
+						linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "ลงทะเบียน/เข้าสู่ระบบ" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
 					// bot.ReplyMessage(event.ReplyToken, richmessage.GetTest()).Do()
 				}
 
@@ -397,8 +397,8 @@ func HandlerReply(c *gin.Context) {
 				bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 			}
 		} else if event.Type == linebot.EventTypeFollow {
-			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดข้อมูล" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
-				linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "สมัครสมาขิก" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
+			bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดสินเชื่อ" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
+				linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "ลงทะเบียน/เข้าสู่ระบบ" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
 		}
 	}
 }
