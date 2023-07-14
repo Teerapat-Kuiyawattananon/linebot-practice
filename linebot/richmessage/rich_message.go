@@ -1499,3 +1499,141 @@ func GetInfoCars(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
 
 	return flexMessage
 }
+
+func GetCarDetail(car *ent.Car) *linebot.FlexMessage {
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "%s",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "center",
+			  "contents": []
+			},
+			{
+			  "type": "separator",
+			  "margin": "sm",
+			  "color": "#00C301FF"
+			}
+		  ]
+		},
+		"hero": {
+		  "type": "image",
+		  "url": "%s",
+		  "size": "full",
+		  "aspectRatio": "1.51:1",
+		  "aspectMode": "cover"
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "separator",
+			  "margin": "none",
+			  "color": "#00C301FF"
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "lg",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "หมายเลขรถยนต์ :",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%d",
+				  "size": "sm",
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "sm",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "Model :",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s",
+				  "size": "sm",
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "sm",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "ราคา :",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s บาท",
+				  "size": "sm",
+				  "wrap": true,
+				  "contents": []
+				}
+			  ]
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "sm",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "วันที่ผลิต :",
+				  "size": "sm",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%s",
+				  "size": "sm",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		}
+	  }`
+	json := fmt.Sprintf(jsonStr, car.Model, car.ImagePath, car.ID, car.Model, humanize.Comma(int64(car.Price)), car.RegisteredAt.Format("02/01/2006"))
+
+	// Creater Flex Container
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(json))
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	flexMessage := linebot.NewFlexMessage("CarDetail", flexContainer)
+
+	return flexMessage
+}

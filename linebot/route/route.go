@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
+	_"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -312,8 +312,8 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
 						return
 					}
-					msg := fmt.Sprintf("CarID: %d\nModel: %s\nPrice: %s บาท\nDate: %s", car.ID, car.Model, humanize.Comma(int64(car.Price)), car.RegisteredAt.Format("02/01/2006"))
-					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(msg)).Do()
+
+					bot.ReplyMessage(event.ReplyToken,  richmessage.GetCarDetail(car)).Do()
 
 				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text); match {
 					msgLine := strings.Split(message.Text, "\n")
