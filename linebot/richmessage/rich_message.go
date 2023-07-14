@@ -511,6 +511,11 @@ func GetMenuTeaTimeCarousel() *linebot.FlexMessage {
 
 func GetSinTrustFlexMessage(lineuser *ent.LineUser) *linebot.FlexMessage {
 	creditlater := lineuser.QueryCreditlaters().OnlyX(context.Background())
+	// format Credit later ID
+	strTmp := fmt.Sprintf("%012d", creditlater.ID)
+	creditlater_number := fmt.Sprintf("%s-%s-%s", strTmp[:4], strTmp[4:7], strTmp[7:])
+
+	//Create FlexContainer
 	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(fmt.Sprintf(
 		`{
 			"type": "bubble",
@@ -677,7 +682,7 @@ func GetSinTrustFlexMessage(lineuser *ent.LineUser) *linebot.FlexMessage {
 				}
 			  ]
 			}
-		  }`, "XXXX-XXX-X0040", creditlater.TransactionRef, creditlater.Date + " น.", creditlater.Branch , humanize.Comma(int64(creditlater.Amount)), creditlater.Installment, creditlater.Detail)))
+		  }`, creditlater_number, creditlater.TransactionRef, creditlater.Date + " น.", creditlater.Branch , humanize.Comma(int64(creditlater.Amount)), creditlater.Installment, creditlater.Detail)))
 	if err != nil {
 		log.Println(err)
 	}
