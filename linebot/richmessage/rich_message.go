@@ -1642,3 +1642,337 @@ func GetCarDetail(car *ent.Car) *linebot.FlexMessage {
 
 	return flexMessage
 }
+
+func GetGroups(client *ent.Client, ctx context.Context) *linebot.FlexMessage {
+	
+	jsonStr := `{
+		"type": "carousel",
+		"contents": [%s]
+	  }`
+	
+	groups, err := client.Group.
+						Query().
+						All(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jsonGroups := `,{
+		"type": "bubble",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "flex": 0,
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "Group : %s",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "center",
+			  "contents": []
+			}
+		  ]
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "จำนวนสมาชิก",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%d",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูสมาชิกกลุ่ม",
+				"text": "สมาชิกกลุ่ม: %s"
+			  },
+			  "color": "#AAAAAA",
+			  "style": "primary"
+			},
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "เข้าร่วมกลุ่ม",
+				"text": "เข้ากลุ่ม: %s"
+			  },
+			  "color": "#6BB583FF",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`
+	jsonTmp := ""
+	for i, group := range groups {
+		if i == 0 {
+			jsonTmp += fmt.Sprintf(jsonGroups[1:], group.Name, group.QueryLineusers().CountX(ctx), group.Name, group.Name)
+		} else {
+			jsonTmp += fmt.Sprintf(jsonGroups, group.Name, group.QueryLineusers().CountX(ctx), group.Name, group.Name)
+		}
+		
+	}
+
+	jsonStr = fmt.Sprintf(jsonStr, jsonTmp)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Fatal(err)
+	}
+	flexMessage := linebot.NewFlexMessage("Groups", flexContainer)
+
+	return flexMessage	
+}
+
+func GetMemberGroup(group *ent.Group, ctx context.Context) *linebot.FlexMessage {
+	jsonStr := `{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "รายชื่อสมาชิก กลุ่ม: %s",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "center",
+			  "contents": []
+			},
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "margin": "md",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "จำนวนสมาชิก: ",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%d",
+				  "contents": []
+				}
+			  ]
+			},
+			{
+			  "type": "separator",
+			  "margin": "md",
+			  "color": "#00C301FF"
+			}%s
+		  ]
+		}
+	  }`
+
+	tmpStr := ""
+	memberStr := `,
+	{
+	  "type": "box",
+	  "layout": "baseline",
+	  "margin": "sm",
+	  "contents": [
+		{
+		  "type": "text",
+		  "text": "No. %d",
+		  "contents": []
+		},
+		{
+		  "type": "text",
+		  "text": "%s",
+		  "wrap": true,
+		  "contents": []
+		}
+	  ]
+	}`
+	users := group.QueryLineusers().AllX(ctx)
+	for i, user := range users {
+		log.Println(i, user)
+		tmpStr += fmt.Sprintf(memberStr, i+1, user.DisplyaName)
+	}
+	json := fmt.Sprintf(jsonStr, group.Name ,group.QueryLineusers().CountX(ctx),tmpStr)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(json))
+	if err != nil {
+		log.Fatal(err)
+	}
+	flexMessage := linebot.NewFlexMessage("Member", flexContainer)
+	return flexMessage
+}
+
+func GetMyGroups(line_user *ent.LineUser, ctx context.Context) *linebot.FlexMessage {
+	
+	jsonStr := `{
+		"type": "carousel",
+		"contents": [%s]
+	  }`
+	
+	groups, err := line_user.QueryGroups().
+						All(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	jsonGroups := `,{
+		"type": "bubble",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "flex": 0,
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "Group : %s",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "center",
+			  "contents": []
+			}
+		  ]
+		},
+		"body": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "box",
+			  "layout": "baseline",
+			  "contents": [
+				{
+				  "type": "text",
+				  "text": "จำนวนสมาชิก",
+				  "color": "#AAA9A9FF",
+				  "contents": []
+				},
+				{
+				  "type": "text",
+				  "text": "%d",
+				  "contents": []
+				}
+			  ]
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "horizontal",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูสมาชิกกลุ่ม",
+				"text": "สมาชิกกลุ่ม: %s"
+			  },
+			  "color": "#AAAAAA",
+			  "style": "primary"
+			},
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ออกจากกลุ่ม",
+				"text": "ออกจากกลุ่ม: %s"
+			  },
+			  "color": "#F77575FF",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`
+	jsonTmp := ""
+	for i, group := range groups {
+		if i == 0 {
+			jsonTmp += fmt.Sprintf(jsonGroups[1:], group.Name, group.QueryLineusers().CountX(ctx), group.Name, group.Name)
+		} else {
+			jsonTmp += fmt.Sprintf(jsonGroups, group.Name, group.QueryLineusers().CountX(ctx), group.Name, group.Name)
+		}
+		
+	}
+
+	jsonStr = fmt.Sprintf(jsonStr, jsonTmp)
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(jsonStr))
+	if err != nil {
+		log.Fatal(err)
+	}
+	flexMessage := linebot.NewFlexMessage("MyGroups", flexContainer)
+
+	return flexMessage	
+}
+
+func GetGroupMenu() *linebot.FlexMessage {
+	flexContainer, err := linebot.UnmarshalFlexMessageJSON([]byte(`{
+		"type": "bubble",
+		"direction": "ltr",
+		"header": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "Group Menu",
+			  "weight": "bold",
+			  "size": "lg",
+			  "align": "center",
+			  "contents": []
+			}
+		  ]
+		},
+		"footer": {
+		  "type": "box",
+		  "layout": "vertical",
+		  "spacing": "md",
+		  "contents": [
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูรายชื่อกลุ่ม",
+				"text": "กลุ่ม"
+			  },
+			  "color": "#6BB583FF",
+			  "style": "primary"
+			},
+			{
+			  "type": "button",
+			  "action": {
+				"type": "message",
+				"label": "ดูกลุ่มของฉัน",
+				"text": "กลุ่มของฉัน"
+			  },
+			  "color": "#6BB583FF",
+			  "style": "primary"
+			}
+		  ]
+		}
+	  }`))
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	flexMessage := linebot.NewFlexMessage("GroupMenu", flexContainer)
+	return flexMessage
+}

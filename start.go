@@ -37,6 +37,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := CreateGroups(client, ctx) ; err != nil {
+		log.Fatal(err)
+	}
+
 	r.POST("/callback", route.HandlerReply)
 
 	r.Run(":" + os.Getenv("PORT"))
@@ -73,5 +77,33 @@ func CreateCars(client *ent.Client, ctx context.Context) error {
 					return err
 				}
 	
+	return nil
+}
+
+func CreateGroups(client *ent.Client, ctx context.Context) error {
+	if client.Group.Query().CountX(ctx) > 0 {
+		return nil
+	}
+
+	if err := client.Group.
+				Create().
+				SetName("Github").
+				Exec(ctx) ; err != nil {
+					return err
+				}
+
+	if err := client.Group.
+				Create().
+				SetName("Game").
+				Exec(ctx) ; err != nil {
+					return err
+				}
+
+	if err := client.Group.
+				Create().
+				SetName("Food").
+				Exec(ctx) ; err != nil {
+					return err
+				}
 	return nil
 }

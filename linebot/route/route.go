@@ -6,6 +6,7 @@ import (
 	"entdemo/ent/car"
 	_ "entdemo/ent/car"
 	_ "entdemo/ent/creditlater"
+	"entdemo/ent/group"
 	"entdemo/ent/linelog"
 	"entdemo/ent/lineuser"
 	"entdemo/linebot/richmessage"
@@ -18,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	_"github.com/dustin/go-humanize"
+	_ "github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -111,7 +112,7 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, richmessage.GetSinTrustChangeDate(lineUser)).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				} else if message.Text == "Groups" {
+				} else if message.Text == "GroupsList" {
 					bot.ReplyMessage(event.ReplyToken, richmessage.GetListGroups(client)).Do()
 				} else if message.Text == "Register" {
 					profile, _ := bot.GetProfile(event.Source.UserID).Do()
@@ -177,7 +178,7 @@ func HandlerReply(c *gin.Context) {
 						bot.ReplyMessage(event.ReplyToken, richmessage.GetSinTrustChangeAmount(lineUser)).Do()
 					}
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
-				} else if match, _ := regexp.MatchString("แก้ไขจำนวนเงินเป็น: [1-9][0-9]+[.]?[0-9]+", message.Text); match == true {
+				} else if match, _ := regexp.MatchString("แก้ไขจำนวนเงินเป็น: [1-9]+[0-9]*([.][0-9]+)?", message.Text); match == true {
 					if client.LineUser.Query().Where(lineuser.UserId(event.Source.UserID)).FirstIDX(ctx) == 0 || lineUser.Active == false {
 						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("กรุณาลงทะเบียนหรือเข้าสู่ระบบ")).Do()
 						return
@@ -315,7 +316,7 @@ func HandlerReply(c *gin.Context) {
 
 					bot.ReplyMessage(event.ReplyToken,  richmessage.GetCarDetail(car)).Do()
 
-				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]?[0-9]+\nAction: [a-zA-Z| ]+`, message.Text); match {
+				} else if match, _ := regexp.MatchString(`แก้ไข Log ที่ [1-9]+[0-9]*\nAction: [a-zA-Z| ]+`, message.Text); match {
 					msgLine := strings.Split(message.Text, "\n")
 					logID, _ := strconv.Atoi(msgLine[0][30:])
 					logAction := msgLine[1][8:]
@@ -332,6 +333,63 @@ func HandlerReply(c *gin.Context) {
 					}
 
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(fmt.Sprintf("แก้ไข Action's Log ที่ %d เป็น %s เรียบร้อย", line_log.ID, line_log.Action))).Do()
+				} else if message.Text == "กลุ่ม" {
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetGroups(client, ctx)).Do()
+				} else if match, _ := regexp.MatchString("เข้ากลุ่ม: [a-zA-Z_]+$", message.Text) ; match {
+					gName := message.Text[29:]
+					group, err := client.Group.Query().
+									Where(group.Name(gName)).
+									Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					err = group.Update().
+							AddLineusers(lineUser).
+							Exec(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เข้าร่วมกลุ่ม " + group.Name + " สำเร็จ")).Do()
+					
+
+				} else if match, _ := regexp.MatchString("สมาชิกกลุ่ม: [a-zA-Z_]+$", message.Text) ; match {
+					gName := message.Text[35:]
+					group, err := client.Group.Query().
+									Where(group.Name(gName)).
+									Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetMemberGroup(group, ctx)).Do()
+				} else if message.Text == "กลุ่มของฉัน" {
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetMyGroups(lineUser, ctx)).Do()
+				} else if match, _ := regexp.MatchString("ออกจากกลุ่ม: [a-zA-Z_]+$", message.Text) ; match {
+					gName := message.Text[35:]
+					group, err := client.Group.Query().
+									Where(group.Name(gName)).
+									Only(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					err = lineUser.Update().
+							RemoveGroups(group).
+							Exec(ctx)
+					if err != nil {
+						bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("เกิดข้อผิดพลาด: " + err.Error())).Do()
+						return
+					}
+
+					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("ออกจากกลุ่ม " + group.Name + " สำเร็จ")).Do()
+									
+				} else if message.Text == "Groups" {
+					bot.ReplyMessage(event.ReplyToken, richmessage.GetGroupMenu()).Do()
 				} else {
 					bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(`คุณสามารถพิมพ์ "สินเชื่อ" หรือ กดปุ่ม "ดูรายละเอียดสินเชื่อ" ด้านล่าง เพื่อดูรายละเอียดการกู้เงิน`),
 						linebot.NewTextMessage(`หรือคุณสามารถสมัครเป็นผู้กู้โดยการ กดที่ปุ่ม "ลงทะเบียน/เข้าสู่ระบบ" ด้านล่าง หรือพิมพ์ "Register"`)).Do()
